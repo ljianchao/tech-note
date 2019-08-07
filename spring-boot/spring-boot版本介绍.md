@@ -355,3 +355,176 @@ The problem can be avoided by downgrading to HttpCore 4.4.4 or, preferably, by s
 - The `ServerPortInfoApplicationContextInitializer` has been deprecated to move it to a new package
 
 - `org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilder` has been deprecated to move it to a new package. `org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder` should be used instead. A bean of the old type is no longer auto-configured. If your application uses this bean it should be updated to use the `org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder` bean instead.
+
+## Spring Boot 1.4.0 Release Notes
+
+### Upgrading from Spring Boot 1.3
+- - -
+
+#### Deprecations from Spring Boot 1.3
+
+Classes, methods and properties that were deprecated in Spring Boot 1.3 have been removed in this release. Please ensure that you aren’t calling deprecated methods before upgrading.
+
+Log4j 1 support has been removed following [Apache EOL announcement](https://blogs.apache.org/foundation/entry/apache_logging_services_project_announces).
+
+#### Renamed starters
+The following starters have been renamed, the old ones will be removed in Spring Boot 1.5
+
+- `spring-boot-starter-ws` → `spring-boot-starter-web-services`
+
+- `spring-boot-starter-redis` → `spring-boot-starter-data-redis`
+
+#### DataSourceProperties get methods
+Some `get…​` methods from `DataSourceProperties` have been changed to be more consistent with other `@ConfigurationProperties` classes. If you previously directly called any of the following methods in your code, you will need to migrate to the new `determine…​()` equivalents:
+
+- `getDriverClassName()` → `determineDriverClassName()`
+
+- `getUrl()` → `determineUrl()`
+
+- `getUsername()` → `determineUsername()`
+
+- `getPassword()` → `determineUsername()`
+
+Note: 
+> The `get` methods are not deprecated but their behavior has changed, make sure that you manually check for usage when upgrading.
+
+#### DataSource binding
+Prior to Spring Boot 1.4, auto-configured datasources were bound to the `spring.datasource` namespace. In 1.4, we only bind the common settings to `spring.datasource` (see DataSourceProperties) and we have defined new specific namespaces for the four connections pools we support (in that order):
+
+- `spring.datasource.tomcat` for `org.apache.tomcat.jdbc.pool.DataSource`
+
+- `spring.datasource.hikari` for `com.zaxxer.hikari.HikariDataSource`
+
+- `spring.datasource.dbcp` for `org.apache.commons.dbcp.BasicDataSource`
+
+- `spring.datasource.dbcp2` for `org.apache.commons.dbcp2.BasicDataSource`
+
+If you were using specific settings of the connection pool implementation that you are using, you will have to move that configuration to the relevant namespace. For instance, if you were using Tomcat’s `testOnBorrow` flag, you’ll have to move it from `spring.datasource.test-on-borrow` to `spring.datasource.tomcat.test-on-borrow`.
+
+If you are using configuration assistance in your IDE, you can now see which settings are available per connection pools rather than having all of them mixed in the `spring.datasource` namespace. This should make your life much easier figuring out what implementation supports what features.
+
+#### Test utilities and classes
+Spring Boot 1.4 ships with a new `spring-boot-test` module that contains a completely reorganized `org.springframework.boot.test package`. When upgrading a Spring Boot 1.3 application you should migrate from the deprecated classes in the old package to the equivalent class in the new structure. If you’re using Linux or OSX, you can use the following command to migrate code:
+```
+    find . -type f -name '*.java' -exec sed -i '' \
+    -e s/org.springframework.boot.test.ConfigFileApplicationContextInitializer/org.springframework.boot.test.context.ConfigFileApplicationContextInitializer/g \
+    -e s/org.springframework.boot.test.EnvironmentTestUtils/org.springframework.boot.test.util.EnvironmentTestUtils/g \
+    -e s/org.springframework.boot.test.OutputCapture/org.springframework.boot.test.rule.OutputCapture/g \
+    -e s/org.springframework.boot.test.SpringApplicationContextLoader/org.springframework.boot.test.context.SpringApplicationContextLoader/g \
+    -e s/org.springframework.boot.test.SpringBootMockServletContext/org.springframework.boot.test.mock.web.SpringBootMockServletContext/g \
+    -e s/org.springframework.boot.test.TestRestTemplate/org.springframework.boot.test.web.client.TestRestTemplate/g \
+    {} \;
+```
+
+Additionally, Spring Boot 1.4 attempts to rationalize and simplify the various ways that a Spring Boot test can be run. You should migrate the following to use the new `@SpringBootTest` annotation:
+
+- From `@SpringApplicationConfiguration(classes=MyConfig.class)` to `@SpringBootTest(classes=MyConfig.class)`
+
+- From `@ContextConfiguration(classes=MyConfig.class, loader=SpringApplicationContextLoader.class)` to `@SpringBootTest(classes=MyConfig.class)`
+
+- From `@IntegrationTest` to `@SpringBootTest(webEnvironment=WebEnvironment.NONE)`
+
+- From `@IntegrationTest with @WebAppConfiguration` to `@SpringBootTest(webEnvironment=WebEnvironment.DEFINED_PORT) (or RANDOM_PORT)`
+
+- From `@WebIntegrationTest` to `@SpringBootTest(webEnvironment=WebEnvironment.DEFINED_PORT) (or RANDOM_PORT)`
+
+Tip: Whilst migrating tests you may also want to replace any `@RunWith(SpringJUnit4ClassRunner.class)` declarations with Spring 4.3’s more readable `@RunWith(SpringRunner.class)`.
+
+For more details on the `@SpringBootTest` annotation refer to the [updated documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications).
+
+#### TestRestTemplate
+The `TestRestTemplate` class no longer directly extends `RestTemplate` (although it continues to offer the same methods). This allows `TestRestTemplate` to be configured as a bean without it being accidentally injected. If you need access to the actual underlying `RestTemplate` use the `getRestTemplate()` method.
+
+#### Maven spring-boot.version property
+The `spring-boot.version` property has been removed from the `spring-boot-dependencies` pom. See [issue 5104](https://github.com/spring-projects/spring-boot/issues/5014) for details.
+
+#### Dispatch Options Request
+The default `spring.mvc.dispatch-options-request` property has changed from `false` to `true` to align with Spring Framework’s preferred default. If you don’t want `OPTIONS` requests to be dispatched to `FrameworkServlet.doService` you should explicitly set `spring.mvc.dispatch-options-request` to `false`.
+
+#### Forced character encoding
+Forced character encoding now only applies to requests (and not responses). If you want to force encoding for both requests and responses set `spring.http.encoding.force` to `true`.
+
+#### Multipart support
+The multipart properties have moved from the `multipart`. namespace to the `spring.http.multipart.` namespace.
+
+#### Server header
+The `Server` HTTP response header is no longer set unless the `server.server-header` property is set.
+
+#### @ConfigurationProperties default bean names
+When a `@ConfigurationProperties` bean is registered via `@EnableConfigurationProperties(SomeBean.class)`, we used to generate a bean name of the form `<prefix>.CONFIGURATION_PROPERTIES`. As of Spring Boot 1.4, we have changed that pattern to avoid name clashes if two beans use the same prefix.
+
+The new conventional name is `<prefix>-<fqn>`, where `<prefix>` is the environment key prefix specified in the `@ConfigurationProperties` annotation and `<fqn>` the fully qualified name of the bean. If the annotation does not provide any prefix, only the fully qualified name of the bean is used.
+
+#### Thymeleaf 3
+By default, Spring Boot uses Thymeleaf 2.1 but it is now compatible with Thymeleaf 3 as well, check the [updated documentation](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#howto-use-thymeleaf-3) for more details.
+
+#### Executable jar layout
+The layout of executable jars has changed. If you are using Spring Boot’s Maven, Gradle, or Ant support to build your application this change will not affect you. If you are building an executable archive yourself, please be aware that an application’s dependencies are now packaged in `BOOT-INF/lib` rather than `lib`, and an application’s own classes are now packaged in `BOOT-INF/classes` rather than the root of the jar.
+
+##### Jersey classpath scanning limitations
+The change to the layout of executable jars means that a limitation in Jersey’s classpath scanning now affects executable jar files as well as executable war files. To work around the problem, classes that you wish to be scanned by Jersey should be packaged in a jar and included as a dependency in `BOOT-INF/lib`. The Spring Boot launcher should then be configured to unpack those jars on start up so that Jersey can scan their contents.
+
+#### `@Transactional` default to cglib proxies
+When Boot auto-configures the transaction management, `proxyTargetClass` is now set to `true` (meaning that cglib proxies are created rather than requiring your bean to implement an interface). If you want to align that behaviour for other aspects that aren’t auto-configured, you’ll need to explicitly enable the property now:
+> @EnableCaching(proxyTargetClass = true)  
+
+Note: If you happen to use `@Transactional` on interfaces, you’ll have to be explicit and add `@EnableTransactionManagement` to your configuration. This will restore the previous behaviour.
+
+### New and Noteworthy
+- - - 
+
+Tip: Check [the configuration changelog](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-1.4-Configuration-Changelog) for a complete overview of the changes in configuration.
+
+#### Spring Framework 4.3
+Spring Boot 1.4 builds on and requires Spring Framework 4.3. There are a number of nice refinements in Spring Framework 4.3 including new Spring MVC @RequestMapping annotations. Refer to the [Spring Framework reference documentation](https://docs.spring.io/spring-framework/docs/4.3.x/spring-framework-reference/htmlsingle/#new-in-4.3) for details.
+
+Note that the test framework in Spring Framework 4.3 requires JUnit 4.12. See [SPR-13275](https://jira.spring.io/browse/SPR-13275) for further details.
+
+#### Third-party library upgrades
+A number of third party libraries have been upgraded to their latest version. Updates include Jetty 9.3, Tomcat 8.5, Jersey 2.23, Hibernate 5.0, Jackson 2.7, Solr 5.5, Spring Data Hopper, Spring Session 1.2, Hazelcast 3.6, Artemis 1.3, Ehcache 3.1, Elasticsearch 2.3, Spring REST Docs 1.1, Spring AMQP 1.6 & Spring Integration 4.3.
+
+Several Maven plugins were also upgraded.
+
+#### Elasticsearch Jest support
+Spring Boot auto-configures a `JestClient` and a dedicated `HealthIndicator` if Jest is on the classpath. This allows you to use `Elasticsearch` even when `spring-data-elasticsearch` isn’t on the classpath.
+
+#### Analysis of startup failures
+Spring Boot will now perform analysis of common startup failures and provide useful diagnostic information rather than simply logging an exception and its stack trace.  
+
+If you still want to see the stacktrace of the underlying cause, enable debug logging for `org.springframework.boot.diagnostics.LoggingFailureAnalysisReporter`.
+
+#### Image Banners
+You can now use image files to render ASCII art banners. Drop a `banner.gif`, `banner.jpg` or `banner.png` file into `src/main/resources` to have it automatically converted to ASCII. You can use the `banner.image.width` and `banner.image.height` properties to tweak the size, or use `banner.image.invert` to invert the colors.
+
+#### RestTemplate builder
+A new `RestTemplateBuilder` can be used to easily create a `RestTemplate` with sensible defaults. By default, the built `RestTemplate` will attempt to use the most suitable `ClientHttpRequestFactory` available on the classpath and will be aware of the `MessageConverter` instances to use (including Jackson). The builder includes a number of useful methods that can be used to quickly configure a `RestTemplate`. For example, to add BASIC auth support you can use:
+
+```java
+@Bean
+public RestTemplate restTemplate(RestTemplateBuilder builder) {
+	return builder.basicAuthorization("user", "secret").build();
+}
+```
+
+The auto-configured `TestRestTemplate` now uses the `RestTemplateBuilder` as well.
+
+
+#### JSON Components
+A new `@JsonComponent` annotation is now provided for custom Jackson `JsonSerializer` and/or `JsonDeserializer` registration. This can be a useful way to decouple JSON serialization logic:
+
+```java
+@JsonComponent
+public class Example {
+
+	public static class Serializer extends JsonSerializer<SomeObject> {
+		// ...
+	}
+
+	public static class Deserializer extends JsonDeserializer<SomeObject> {
+		// ...
+	}
+
+}
+```
+
+Additionally, Spring Boot also now provides `JsonObjectSerializer` and `JsonObjectDeserializer` base classes which provide useful alternatives to the standard Jackson versions when serializing objects. See the [updated documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-json-components) for details.
