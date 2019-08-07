@@ -4,6 +4,7 @@
 ## Spring Boot 1.1 Release Notes
 
 ### Upgrading from Spring Boot 1.0
+- - -
 
 #### ErrorController
 The ErrorController interface and related classes have been moved from spring-boot-actuator to spring-boot-autoconfigure. This change should be transparent for most users, however, some package renames have occurred.
@@ -18,6 +19,7 @@ Spring Boot now provides Reactor 1.1.2 by default (1.0.x provided Reactor 1.0.1)
 Spring Boot now forks a process to run your app (i.e. using mvn spring-boot:run). This concretely means that command line arguments are no longer available to the application. Check this example for more details.
 
 ### New and Noteworthy
+- - -
 
 #### Version Updates
 Several third-party dependencies have been upgraded to align versions with those defined in the upcoming Spring IO Platform release. It is now also possible to use a custom version meta-data file with the Spring Boot Gradle plugin.
