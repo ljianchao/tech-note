@@ -157,4 +157,201 @@ The `repackage` task of the `spring-boot-maven-plugin` can now be disabled. This
 The `spring-boot`, `spring-boot-autoconfigure` and `spring-boot-actuator` jars now include additional meta-data files which can be used by tools developers to provide `code completion'' support in `application.properties files. An annotation processor is also provided to allow you to generate your own files automatically from ``@ConfigurationProperties` classes.
 
 
+## Spring Boot 1.3.0 Release Notes
 
+### Upgrading from Spring Boot 1.2
+- - -
+
+#### Deprecations from Spring Boot 1.2
+Classes, methods and properties that were deprecated in Spring Boot 1.2 have been removed in this release. Please ensure that you aren’t calling deprecated methods before upgrading.
+
+#### Jackson
+Spring Boot 1.2 registered any Jackson Module beans with every `ObjectMapper` in the application context. This made it impossible to take complete control of an `ObjectMapper` bean’s modules. Spring Boot 1.3 will only register Jackson Module beans with `ObjectMappers` that are created or configured with the auto-configured `Jackson2ObjectMapperBuilder`. This brings the behaviour of module configuration into line with Boot’s other Jackson configuration.
+
+#### Logging
+##### Spring specific configuration
+In order to prevent double initialization Spring specific log configuration files can now be used. It’s recommended (although not required) that you rename any default log configuration files to use a `-spring` suffix. For example `logback.xml` would change to `logback-spring.xml`.
+
+##### Initialization failures
+In Spring Boot 1.2, if you specified a custom logging configuration file using `logging.config` and the file did not exist, it would silently fallback to using the default configuration. Spring Boot 1.3 fails due to the missing file. Similarly, if you provided a custom Logback configuration file which was malformed, Spring Boot 1.2 would fall back to its default configuration. Spring Boot 1.3 fails and reports the problems with the configuration to `System.err`.
+
+#### HTTP response compression
+Spring Boot 1.2 supported native response compression for Tomcat users, or compression using Jetty’s GZipFilter for users of Jetty, Tomcat, and Undertow. Motivated by the Jetty team’s deprecation of their gzip filter, Spring Boot 1.3 replaces this with support for native response compression in all three embedded containers. As a result the `server.tomcat.compression.` and `spring.http.gzip.` properties are no longer supported. The new `server.compression.*` properties should be used instead.
+
+#### Tomcat session storage
+By default tomcat no longer saves session data in `/tmp`. If you want to use persistent sessions with Tomcat set the `server.session.persistent` property to true. The `server.session.store-dir` can be used to save files in a specific location.
+
+#### Jetty JSPs
+The `spring-boot-starter-jetty` "Starter POM" no longer includes `org.eclipse.jetty:jetty-jsp`. If you are using Jetty with JSPs you will now need to directly add this dependency yourself.
+
+#### MVC Stacktrace output
+Stacktrace information is now never included when Spring MVC renders an error response. If you want Spring Boot 1.2 behavior set `error.include-stacktrace` to `on-trace-param`.
+
+#### Thymeleaf’s Spring Security integration
+Due to the upgrade to Spring Security 4, Spring Boot 1.3 has also upgraded the dependency management and auto-configuration of Thymeleaf’s Spring Security support. The coordinates of the new artifact are `org.thymeleaf.extras:thymeleaf-extras-springsecurity4`. Please update your pom.xml or build.gradle accordingly.
+
+#### Missing /templates folder errors
+Spring Boot applications no longer fail to start when a `/templates` folder cannot be found. If you are using a supported templating technology, and you forget to add `/templates`, a warning is now logged instead.
+
+#### Auto-configuration order
+Spring Boot no longer honours `@Order` to manage ordering between auto-configuration classes, please use `@AutoconfigureOrder` instead. Note also that you can use `@AutoconfigureBefore` and `@AutoconfigureAfter` to specify the order against specific auto-configuration classes.
+
+#### Maven plugin
+##### spring-boot:run resources
+The Spring Boot Maven plugin no longer adds `src/main/resources` directly to the classpath when using `spring-boot:run`. If you want live, in-place editing we recommend using Devtools. The `addResources` property can be set in your `pom.xml` if you want to restore Spring Boot 1.2. behavior.
+
+#### Maven resources filtering
+If you use the `spring-boot-starter-parent`, Maven tokens are only filtered using `@` now. This prevents any Spring placeholders in your configuration (e.g. ${foo}) to be be expanded by the build.
+
+Concretely, if you are still using the standard format (i.e. `${project.version}`) please migrate them (`@project.version@`) or override the `maven-resources-plugin` configuration.
+
+
+#### Dependencies
+##### Spring 4.2
+Spring Boot 1.3 requires Spring Framework 4.2 or later and is not compatible with earlier versions.
+
+##### Spring Security 4.0
+Spring Boot 1.3 uses Spring Security 4.0. See the Spring Security documentation for information on migrating from 3.2.
+
+### New and Noteworthy
+- - -
+
+Tip: Check [the configuration changelog](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-1.3.0-Configuration-Changelog) for a complete overview of the changes in configuration.
+
+
+#### Version Updates
+Spring Boot 1.3 builds on and requires Spring Framework 4.2. Several 3rd party dependencies have been upgraded with this release. No major upgrades have been made to the Tomcat or Jetty versions with this release.
+
+#### Developer Tools
+Spring Boot 1.3 includes a new `spring-boot-devtools` module which aims to improve the development-time experience. The module provides:
+
+- Sensible property defaults (for example disabling template caches) 
+
+- Automatic application restarts 
+
+- LiveReload support 
+
+- Remote development support (including remote updates and remote debug via an HTTP tunnel). 
+
+- Persistent HTTP sessions across restarts 
+
+See the [updated documentation](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#using-boot-devtools) for more information.
+
+#### Caching Auto-configuration
+Auto-configuration is now provided for the following cache technologies:
+
+- EhCache 
+
+- Hazelcast 
+
+- Infinispan 
+
+- Any compliant JCache (JSR 107) implementation 
+
+- Redis 
+
+- Guava 
+
+In addition, simple Map based in-memory caching is also supported. Caching is automatically configured when your application `@Configuration` is annotated with `@EnableCaching`. Cache statistics are now also exposed as an actuator endpoint (when the underlying technology allows).
+
+For complete details see the [updated documentation](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-caching).
+
+#### Fully executable JARs and service support
+The Spring Boot Maven and Gradle plugins can now generate full executable archives for Linux/Unix operating systems. Furthermore you can now easily install these JARs as `init.d` or `systemd` services. Running a fully executable JAR is as easy as typing:
+
+> $ ./myapp.jar 
+and to install it as an init.d service:
+
+> $ sudo link -s /var/myapp/myapp.jar /etc/init.d/myapp 
+Additional information is available in the [reference documentation](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#deployment-service).
+
+#### OAuth2 Support
+You can now use `@EnableAuthorizationServer` and `@EnableResourceServer` to quickly create OAuth2 authorization and resource servers. In addition, `@EnableOAuth2Client` allows your application to act as an OAuth2 client. For details see the overhauled [security section of the reference guide](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-security-oauth2).
+
+#### Validation "Starter POM"
+A new `spring-boot-starter-validation` "starter POM" is now available to provide bean validation (JSR 303) support.
+
+#### Support for @WebServlet, @WebFilter and @WebListener
+When using an embedded servlet container, automatic registration of `@WebServlet`, `@WebFilter` and `@WebListener` annotated classes can now be enabled using `@ServletComponentScan`.
+
+#### Spring resource chains
+You can now configure basic aspects of Spring’s `ResourceChainRegistration` via application properties. This allows you to create unique resource names so that you can implement cache busting. The `spring.resources.chain.strategy.content.` properties can be used to configure fingerprinting based on the content of the resource; and `spring.resources.chain.strategy.fixed.` properties can be used if you want to use a "fixed version" for your fingerprint.
+
+#### DataSource type
+The connection pool used by auto-configuration can now be specified via the `spring.datasource.type` configuration key.
+
+#### Logging
+##### Log Patterns
+The `logging.pattern.console` and `logging.pattern.file` properties can now be used to specify a logging pattern directly from your `application.properties`. That can be handy If you only want to customize patterns as you no longer need to define your own `log*.xml` file.
+
+##### Jar details in stacktraces
+If you are using logback or log4j2, we now include information about the location from which each class in a stack trace was loaded (this can be customized via `logging.exception-conversion-word`).
+
+##### Logback extensions
+Spring Boot 1.3 supports some new tags which can be used in your logback configuration file. To use the tags you need to first rename any `logback.xml` configuration to `logback-spring.xml`. Once your configuration file has been renamed, the following tags are available.
+
+See the [Logback extensions](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#boot-features-logback-extensions) section of the reference documentation for more details.
+
+#### Configuration properties
+If you are using `@ConfigurationProperties` on beans, you no longer need to add `@EnableConfigurationProperties` to your configuration as Spring Boot autoconfigures it now. As before you can ask Spring to create a bean for your `@ConfigurationProperties` class using the value attribute of `@EnableConfigurationProperties` or with a regular `@Bean` definition.
+
+#### Configuration properties conversion
+If you need custom type conversion for some configuration keys without a custom `ConversionService` (with bean id conversionService), you now need to qualify the `Converter` beans to use with `@ConfigurationPropertiesBinding` as we no longer lookup all Converter beans.
+
+#### Auto-configuration
+The auto-configuration report has now an additional section called "Unconditional classes". It lists any auto-configuration classes that do not have any class-level conditions, i.e. the class will be always be part of the application’s configuration. It also now lists configurations that have been manually excluded via `@SpringBootApplication(exclude=…​)` or `@EnableAutoConfiguration(exclude=…​)`.
+
+It is now possible to also exclude auto-configuration classes via the `spring.autoconfigure.excludes` property. Similarly, a new `@ImportAutoConfiguration` annotation can be used by tests that wish to selectively import certain auto-configuration classes.
+
+#### MVC Error handling
+The `error.include-stacktrace` property can now be used to determine when stack trace attributes should be included in MVC error responses. Options are `never`, `always` or `on-trace-param` (with `never` being the default).
+
+#### Disabling health indicators
+It is now possible to easily disable all the default health indicators via the `management.health.defaults.enabled` property.
+
+#### TraceWebFilter options
+The actuator TraceWebFilter (use to trace HTTP request/response details) can now log more information. Use the `management.trace.include` property to configure the options that you want to include (see the `TraceProperties.Include` enum).
+
+#### Maven Support
+##### Maven start/stop support and admin features
+The Maven plugin now include `start` and `stop` goals. These enable applications to be started without blocking Maven (allowing other goals to operate on the application). This technique is often used to launch intergration tests from Maven.
+
+A byproduct of this work is that a new `SpringApplicationAdminMXBean` interface has been added which (when enabled) allows a Spring Boot application to be controlled via JMX.
+
+##### Profile activation
+The `spring-boot-maven-plugin` now includes a `profiles` property that can be used with `spring-boot:run`. You can configure profiles in your `pom.xml` or use `-Drun.profiles` on the command line. See the [updated plugin documentation](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/maven-plugin/examples/run-profiles.html) for details.
+
+#### Configuration property meta-data updates
+The `META-INF/spring-configuration-metadata.json` file format has been updated to support new deprecation and hints attributes. Hints can be used by IDE developers to provided better content assist support. Deprecation allow for the deprecation and a replacement key, if any. Such information can be provided by adding `@DeprecatedConfigurationProperty` on the getter of the property. See the [updated appendix](https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/##configuration-metadata-property-attributes) for details.
+
+We’ve also improved the detection of default value: if a property is initialized via a method call having a single argument, we consider said argument to be the default value (i.e. `Charset.forName("UTF-8")` would detect `UTF-8` as the default value).
+
+A new `spring-boot-configuration-metadata` module is now available for any tool developers wishing to use the configuration meta-data in their own tools and apps; it offers an API to read the meta-data and build a repository out of it.
+
+#### Annotation processing
+Apache HttpCore 4.4.5 removed a handful of annotations. This is a binary incompatible change if you are using an annotation processor and are sub-classing a class that uses one of the removed annotations. For example, if the class was using `@Immutable` you will see compile-time annotation processing fail with `[ERROR] diagnostic: error: cannot access org.apache.http.annotation.Immutable`.
+
+The problem can be avoided by downgrading to HttpCore 4.4.4 or, preferably, by structuring your code so that the problematic class is not subject to compile-time annotation processing.
+
+#### Deprecations in Spring Boot 1.3.0
+- The `Application.showBanner` and `ApplicationBuilder.showBanner` methods have been deprecated in favor of `setBannerMode`.
+
+- `@ConditionalOnMissingClass` now expects the class name to be provided using the value attribute rather than name.
+
+- `Log4JLoggingSystem` is now deprecated following Apache’s [EOL declaration for log4j 1.x](https://blogs.apache.org/foundation/entry/apache_logging_services_project_announces).
+
+- The `ConfigurableEmbeddedServletContainer` `setJspServletClassName` and `setRegisterJspServlet` methods have been replaced by setJspServlet.
+
+- The `EndpointMBean` class (and subclasses) now expect an `ObjectMapper` to be provided to the constructor.
+
+- The `DropwizardMetricWriter` had been replaced by `DropwizardMetricService`.
+
+- The protected `SpringApplication.afterRefresh` method that takes a `String[]` has been deprecated in favor of a version that takes `ApplicationArguments`.
+
+- `VcapEnvironmentPostProcessor` has been deprecated in favor of `CloudFoundryVcapEnvironmentPostProcessor`.
+
+- The `LoggingSystem` `initialize` method has been deprecated in favor of a version that accepts `LoggingInitializationContext`.
+
+- The `ServerPortInfoApplicationContextInitializer` has been deprecated to move it to a new package
+
+- `org.springframework.boot.autoconfigure.orm.jpa.EntityManagerFactoryBuilder` has been deprecated to move it to a new package. `org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder` should be used instead. A bean of the old type is no longer auto-configured. If your application uses this bean it should be updated to use the `org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder` bean instead.
