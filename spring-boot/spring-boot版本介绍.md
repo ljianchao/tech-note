@@ -744,3 +744,144 @@ The problem can be avoided by downgrading to HttpCore 4.4.4 or, preferably, by s
 
 - `server.tomcat.max-http-header-size` should be replaced with `server.max-http-header-size`.
 
+## Spring Boot 1.5 Release Notes
+
+### Upgrading from Spring Boot 1.4
+- - -
+
+#### Deprecations from Spring Boot 1.4
+Classes, methods and properties that were deprecated in Spring Boot 1.4 have been removed in this release. Please ensure that you aren’t calling deprecated methods before upgrading. In particular, the HornetQ and Velocity support have been removed.
+
+#### Renamed starters
+The following starters that were renamed in Spring Boot 1.4 have now been removed, if you get "unresolved dependency" errors please check that you are pulling in the correctly named starter:
+
+- `spring-boot-starter-ws` → `spring-boot-starter-web-services`
+
+- `spring-boot-starter-redis` → `spring-boot-starter-data-redis`
+
+#### @ConfigurationProperties validation
+If you have `@ConfigurationProperties` classes that use JSR-303 constraint annotations, you should now additionally annotate them with `@Validated`. Existing validation will currently continue to work, however, a warning will be logged. In the future, classes without `@Validated` will not be validated at all.
+
+#### spring.jpa.database
+The `spring.jpa.database` can now be auto-detected for common databases from the `spring.datasource.url` property. If you’ve manually defined `spring.jpa.database`, and you use a common database, you might want to try removing the property altogether.
+
+Several database have more than one `Dialect` (for instance, Microsoft SQL Server has 3) so we might configure one that doesn’t match the version of the database you are using. If you had a working setup before and would like to rely on Hibernate to auto-detect the `Dialect`, set `spring.jpa.database=default`. Alternatively, you can always set the dialect yourself using the `spring.jpa.database-platform` property.
+
+#### @IntegrationComponentScan
+Spring Integration’s `@IntegrationComponentScan` annotation is now auto-configured. If you follow the recommended project structure, you should try removing it.
+
+#### ApplicationStartedEvent
+If you currently listen for an `ApplicationStartedEvent` in your code you should refactor to use `ApplicationStartingEvent`. We renamed this class to more accurately reflect what it does.
+
+#### Spring Integration Starter
+The `spring-boot-starter-integration` POM no longer includes `spring-integration-jmx`. If you require Spring Integration JMX support you should include a `spring-integration-jmx` dependency yourself.
+
+#### Devtools excluded by default
+Both the Maven and Gradle plugins now by default exclude packaging of the `spring-boot-devtools` jar in "fat" jars. If you are using devtools remote support you will now need to explicitly set the excludeDevtools property in your `build.gradle` or `pom.xml` file.
+
+#### OAuth 2 Resource Filter
+The default order of the OAuth2 resource filter has changed from `3` to `SecurityProperties.ACCESS_OVERRIDE_ORDER - 1`. This places it after the actuator endpoints but before the basic authentication filter chain. The default can be restored by setting `security.oauth2.resource.filter-order = 3`
+
+#### JSP servlet
+The JSP servlet is no longer in development mode by default. Development mode is automatically enabled when using DevTools. It can also be enabled explicitly by setting `server.jsp-servlet.init-parameters.development=true`.
+
+#### Ignored paths and @EnableWebSecurity
+In Spring Boot 1.4 and earlier, the Actuator would always configure some ignored paths irrespective of the use of `@EnableWebSecurity`. This has been corrected in 1.5 so that using `@EnableWebSecurity` will switch off all auto-configuration of web security thereby allowing you to take complete control.
+
+### New and Noteworthy
+- - -
+
+Tip: Check [the configuration changelog](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-1.5-Configuration-Changelog) for a complete overview of the changes in configuration.
+
+#### Third-party library upgrades
+A number of third party libraries have been upgraded to their latest version. Updates include Spring Data Ingalls, Jetty 9.4, JooQ 3.9, AssertJ 2.6.0, Hikari 2.5 and Neo4J 2.1. Several Maven plugins have also been upgraded.
+
+#### Apache Kafka support
+Spring Boot 1.5 include auto-configuration support for Apache Kafka via the [spring-kafka](https://spring.io/projects/spring-kafka) project. To use Kafka simply include the `spring-kafka'depenency and configure the appropriate'spring.kafka.*` application properties.
+
+Recieving messages from Kafka is as simple as annotating a method:
+
+```java
+    @Component
+    public class MyBean {
+
+        @KafkaListener(topics = "someTopic")
+        public void processMessage(String content) {
+            // ...
+        }
+
+    }
+```
+
+#### Transaction manager properties
+It’s now possible to configure various aspects of an auto-configured `PlatformTransactionManager` using `spring.transaction.*` properties. Currently the "default-timeout" and `rollback-on-commit-failure` properties are supported.
+
+#### Deprecation level
+It is now possible to define a deprecation level for a property in the metadata. The level can either be `warning` (default) or `error`.
+
+Here is an example of manual metadata for a property that got moved in Spring Boot 2:
+```json
+    {
+        "name": "server.context-parameters",
+        "type": "java.util.Map<java.lang.String,java.lang.String>",
+        "description": "ServletContext parameters.",
+        "deprecation": {
+            "level": "error",
+            "replacement": "server.servlet.context-parameters"
+        }
+    }
+```
+So far, when a deprecated property is not bound anymore, we remove the metadata altogether. This new feature allows to flag a property (`server.context-parameters` here) as an error. Newer versions of your favorite IDE should use that to offer assistance.
+
+#### Testing updates
+It’s now possible to exclude auto-configuration that would usually be imported by a `@Test…​` annotation. All existing `@Test…​` annotations now include a `excludeAutoConfiguration` attribute. Alternatively, you can add `@ImportAutoConfiguration(exclude=…​)` directly to your tests.
+
+Spring Boot 1.5 also introduces a new `@JdbcTest` annotation that can be used to test direct JDBC interactions.
+
+#### Custom fat jar layouts
+The Spring Boot Maven and Gradle plugins now support custom fat jar layouts. This feature allows experimental layouts [such as this one](https://github.com/dsyer/spring-boot-thin-launcher) to be developed outside of Spring Boot. For more details, see [the updated documentation](http://docs.spring.io/spring-boot/docs/1.5.x-SNAPSHOT/reference/htmlsingle/#build-tool-plugins-gradle-configuration-custom-repackager).
+
+#### JmsTemplate customizations
+It is now possible to customize the auto-configured `JmsTemplate` using additional keys available in the `spring.jms.template.*` namespace.
+
+#### Miscellaneous
+- Mockito 2.x can now be used with `@MockBean` (compatibility with Mockito 1.9 remains)
+
+- The embedded launch script now supports a `force-stop`
+
+- A new health check for Cassandra has been added
+
+- Cassandra user defined types are now resolved (via Spring Data’s `SimpleUserTypeResolver`)
+
+- The `skip` property now works for the Spring Boot Maven Plugin `run`, 'stop' and 'repackage` goals
+
+- If multiple `main` method classes are found, the Maven and Gradle plugins will now automatically use the one annotated with `@SpringBootApplication`
+
+### Deprecations in Spring Boot 1.5
+- - -
+  
+- `TomcatEmbeddedServletContainerFactory.setTldSkip` has been deprecated in favor of `setTldSkipPatterns`
+
+- `ApplicationStartedEvent` has been replaced by `ApplicationStartingEvent`
+
+- Several constants in `LoggingApplicationListener` have been replaced by versions in `LogFile`
+
+- Caching with Guava has been deprecated since Guava support will be dropped in Spring Framework 5. Upgrade to Caffeine
+
+- CRaSH support has been deprecated since it’s no longer actively maintained
+
+- Several protected methods in `EndpointMBeanExporter` have been deprecated following the introduction of `JmxEndpoint`
+
+- `SearchStrategy.PARENTS` has been replaced with `SearchStrategy.ANCESTORS`.
+
+- Apache DBCP support has been deprecated in favor of DBCP 2
+
+- The `server.undertow.buffers-per-region` property has been deprecated because it is not used (see UNDERTOW-587)
+
+- `@AutoConfigureTestDatabase` has been moved from `org.springframework.boot.test.autoconfigure.orm.jpa` to `org.springframework.boot.test.autoconfigure.jdbc`
+
+### Property Renames
+- - -
+- The `server.max-http-post-size` property has been replaced by technology specific variants (for example `server.tomcat.max-http-post-size`)
+
+- The `spring.data.neo4j.session.scope` property has been removed.
