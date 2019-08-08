@@ -528,3 +528,219 @@ public class Example {
 ```
 
 Additionally, Spring Boot also now provides `JsonObjectSerializer` and `JsonObjectDeserializer` base classes which provide useful alternatives to the standard Jackson versions when serializing objects. See the [updated documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-json-components) for details.
+
+#### Convention based error pages
+Custom error pages for a given status code can now be created by following a convention based approach. Create a static HTML file in `/public/error` or add a template to `/templates/error` using the status code as the filename. For example, to register a custom 404 file you could add `src/main/resource/public/error/404.html`. See [the updated reference documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-error-handling-custom-error-pages) for details.
+
+#### Unified @EntityScan annotation
+`org.springframework.boot.autoconfigure.domain.EntityScan` can now be used to specify the packages to use for `JPA`, `Neo4J`, `MongoDB`, `Cassandra` and `Couchbase`. As a result, the JPA-specific `org.springframework.boot.orm.jpa.EntityScan` is now deprecated.
+
+#### ErrorPageRegistry
+New `ErrorPageRegistry` and `ErrorPageRegistrar` interfaces allow error pages to be registered in a consistent way regardless of the use of an embedded servlet container. The `ErrorPageFilter` class has been updated to that it is now a `ErrorPageRegistry` and not a fake `ConfigurableEmbeddedServletContainer`.
+
+#### PrincipalExtractor
+The `PrincipalExtractor` interface can now be used if you need to extract the OAuth2 `Principal` using custom logic.
+
+#### Test improvements
+Spring Boot 1.4 includes a major overhaul of testing support. Test classes and utilities are now provided in dedicated spring-boot-test and spring-boot-test-autoconfigure jars (although most users will continue to pick them up via the spring-boot-starter-test "Starter"). We’ve added AssertJ, JSONassert and JsonPath dependencies to the test starter.
+
+##### @SpringBootTest
+With Spring Boot 1.3 there were multiple ways of writing a Spring Boot test. You could use `@SpringApplicationConfiguration`, `@ContextConfiguration` with the `SpringApplicationContextLoader`, `@IntegrationTest` or `@WebIntegrationTest`. With Spring Boot 1.4, a single `@SpringBootTest` annotation replaces all of those.
+
+Use `@SpringBootTest` in combination with `@RunWith(SpringRunner.class)` and set the webEnvironment attribute depending on the type of test you want to write.
+
+A classic integration test, with a mocked servlet environment:
+```java
+    @RunWith(SpringRunner.class)
+    @SpringBootTest
+    public class MyTest {
+
+        // ...
+
+    }
+```
+
+A web integration test, running a live server listening on a defined port:
+```java
+    @RunWith(SpringRunner.class)
+    @SpringBootTest(webEnvironment=WebEnvionment.DEFINED_PORT)
+    public class MyTest {
+
+        // ...
+
+    }
+```
+
+A web integration test, running a live server listening on a random port:
+```java
+    @RunWith(SpringRunner.class)
+    @SpringBootTest(webEnvironment=WebEnvionment.RANDOM_PORT)
+    public class MyTest {
+
+        @LocalServerPort
+        private int actualPort;
+
+        // ...
+
+    }
+```
+See the [updated reference documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications) for details.
+
+##### Auto-detection of test configuration
+Test configuration can now be automatically detected for most tests. If you follow the Spring Boot recommended conventions for structuring your code the `@SpringBootApplication` class will be loaded when no explicit configuration is defined. If you need to load a different `@Configuration` class you can either include it as a nested `inner-class` in your test, or use the classes attribute of `@SpringBootTest`.
+
+See [Detecting test configuration](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications-detecting-config) for details.
+
+##### Mocking and spying beans
+It’s quite common to want to replace a single bean in your ApplicationContext with a mock for testing purposes. With Spring Boot 1.4 this now as easy as annotating a field in your test with `@MockBean`:
+```java
+    @RunWith(SpringRunner.class)
+    @SpringBootTest
+    public class MyTest {
+
+        @MockBean
+        private RemoteService remoteService;
+
+        @Autowired
+        private Reverser reverser;
+
+        @Test
+        public void exampleTest() {
+            // RemoteService has been injected into the reverser bean
+            given(this.remoteService.someCall()).willReturn("mock");
+            String reverse = reverser.reverseSomeCall();
+            assertThat(reverse).isEqualTo("kcom");
+        }
+
+    }
+```
+You can also use `@SpyBean` if you want to spy on an existing bean rather than using a full mock.
+
+See the [mocking section](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications-mocking-beans) of the reference documentation for more details.
+
+##### Auto-configured tests
+Full application auto-configuration is sometime overkill for tests, you often only want to auto-configure a specific "slice" of your application. Spring Boot 1.4 introduces a number of specialized test annotations that can be used for testing specific parts of your application:
+
+- `@JsonTest` - For testing JSON marshalling and unmarshalling.
+
+- `@WebMvcTest` - For testing Spring MVC @Controllers using MockMVC.
+
+- `@RestClientTest` - For testing RestTemplate calls.
+
+- `@DataJpaTest` - For testing Spring Data JPA elements
+
+Many of the annotations provide additional auto-configuration that’s specific to testing. For example, if you use `@WebMvcTest` you can `@Autowire` a fully configured `MockMvc` instance.
+
+See the [reference documentation](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications-testing-autoconfigured-tests) for details.
+
+##### JSON AssertJ assertions
+New `JacksonTester`, `GsonTester` and `BasicJsonTester` classes can be used in combination with AssertJ to test JSON marshalling and unmarshalling. Testers can be used with the `@JsonTest` annotation or directly on a test class:
+```java
+    @RunWith(SpringRunner.class)
+    @JsonTest
+    public class MyJsonTests {
+
+        private JacksonTester<VehicleDetails> json;
+
+        @Test
+        public void testSerialize() throws Exception {
+            VehicleDetails details = new VehicleDetails("Honda", "Civic");
+            assertThat(this.json.write(details)).isEqualToJson("expected.json");
+            assertThat(this.json.write(details)).hasJsonPathStringValue("@.make");
+        }
+
+    }
+```
+See the [JSON section](https://docs.spring.io/spring-boot/docs/1.4.x/reference/htmlsingle/#boot-features-testing-spring-boot-applications-testing-autoconfigured-json-tests) of the reference documentation or the Javadocs for details.
+
+##### @RestClientTest
+The `@RestClientTest` annotation can be used if you want to test REST clients. By default it will auto-configure Jackson and GSON support, configure a `RestTemplateBuilder` and add support for `MockRestServiceServer`.
+
+##### Auto-configuration for Spring REST Docs
+Combined with the support for auto-configuring `MockMvc` described above, auto-configuration for Spring REST Docs has been introduced. REST Docs can be enabled using the new `@AutoConfigureRestDocs` annotation. This will result in the `MockMvc` instance being automatically configured to use REST Docs and also removes the need to use REST Docs' JUnit rule. Please see the relevant section of the reference documentation for further details.
+
+##### Test utilities
+`spring-boot-starter-test` now brings the [`AssertJ` assertions library](http://joel-costigliola.github.io/assertj/).
+
+Test utilities from the `org.springframework.boot.test` package have been moved to a `spring-boot-test` dedicated artifact.
+
+#### Annotation processing
+Apache HttpCore 4.4.5 removed a handful of annotations. This is a binary incompatible change if you are using an annotation processor and are sub-classing a class that uses one of the removed annotations. For example, if the class was using `@Immutable` you will see compile-time annotation processing fail with `[ERROR] diagnostic: error: cannot access org.apache.http.annotation.Immutable`.
+
+The problem can be avoided by downgrading to HttpCore 4.4.4 or, preferably, by structuring your code so that the problematic class is not subject to compile-time annotation processing.
+
+#### Miscellaneous
+- `server.jetty.acceptors` and `server.jetty.selectors` properties have been added to configure the number of Jetty acceptors and selectors.
+
+- `server.max-http-header-size` and `server.max-http-post-size` can be used to constrain maximum sizes for HTTP headers and HTTP POSTs. Settings work on Tomcat, Jetty and Undertow.
+
+- The minimum number of spare threads for Tomcat can now be configured using `server.tomcat.min-spare-threads`
+
+- Profile negation in now supported in `application.yml` files. Use the familiar `!` prefix in `spring.profiles` values
+
+- The actuator exposes a new `headdump` endpoint that returns a GZip compressed `hprof` heap dump file
+
+- Spring Mobile is now auto-configured for all supported template engines
+
+- The Spring Boot maven plugin allows to bundle system scoped artifacts using the new `includeSystemScope` attribute
+
+- `spring.mvc.log-resolved-exception` enables the automatic logging of a warning when an exception is resolved by a `HandlerExceptionResolver`
+
+- `spring.data.cassandra.schema-action` you be used to customize the schema action to take on startup
+
+- Spring Boot’s fat jar format should now consume much less memory
+
+- Locale to Charset mapping is now supported via the `spring.http.encoding.mapping.<locale>=<charset>` property
+
+- By default, the locale configured using `spring.mvc.locale` is now overridden by a request’s Accept-Language header. To restore 1.3’s behaviour where the header is ignored, set `spring.mvc.locale-resolver` to fixed.
+  
+### Deprecations in Spring Boot 1.4
+- - -
+
+- Velocity support has been deprecated since support has been deprecated as of Spring Framework 4.3.
+
+- Some constructors in `UndertowEmbeddedServletContainer` have been deprecated (most uses should be unaffected).
+
+- The `locations` and `merge` attributes of the `@ConfigurationProperties` annotation have been deprecated in favor of directly configuring the `Environment`.
+
+- The protected `SpringApplication.printBanner` method should no longer be used to print a custom banner. Use the `Banner` interface instead.
+
+- The protected `InfoEndpoint.getAdditionalInfo` method has been deprecated in favor of the `InfoContributor` interface.
+
+- `org.springframework.boot.autoconfigure.test.ImportAutoConfiguration` has been moved to `org.springframework.boot.autoconfigure`.
+
+- All classes in the `org.springframework.boot.test` package have been deprecated. See the "upgrading" notes above for details.
+
+- `PropertiesConfigurationFactory.setProperties(Properties)` is deprecated in favor of using `PropertySources`.
+
+- Several classes in the `org.springframework.boot.context.embedded` package have been deprecated and relocated to `org.springframework.boot.web.servlet`.
+
+- All classes in the `org.springframework.boot.context.web` package have been deprecated and relocated.
+
+- The `spring-boot-starter-ws` "Starter" has been renamed to `spring-boot-starter-web-services`.
+
+- The `spring-boot-starter-redis` "Starter" has been renamed to `spring-boot-starter-data-redis`.
+
+- The `spring-boot-starter-hornetq` starter and auto-configuration has been deprecated in favour of using `spring-boot-starter-artemis`
+
+- `management.security.role` has been deprecated in favour of `management.security.roles`
+
+- The `@org.springframework.boot.orm.jpa.EntityScan` annotation has been deprecated in favor of `@org.springframework.boot.autoconfigure.domain.EntityScan` or explicit configuration.
+
+- `TomcatEmbeddedServletContainerFactory.getValves()` has been deprecated in favor of `getContextValves()`.
+
+- `org.springframework.boot.actuate.system.EmbeddedServerPortFileWriter` has been deprecated in favor of `org.springframework.boot.system.EmbeddedServerPortFileWriter`
+
+- `org.springframework.boot.actuate.system.ApplicationPidFileWriter` has been deprecated in favor of `org.springframework.boot.system.ApplicationPidFileWriter`
+
+### Property Renames
+- - -
+
+- `spring.jackson.serialization-inclusion` should be replaced with `spring.jackson.default-property-inclusion`.
+
+- `spring.activemq.pooled` should be replaced with `spring.activemq.pool.enabled`.
+
+- `spring.jpa.hibernate.naming-strategy` should be replaced with `spring.jpa.hibernate.naming.strategy`.
+
+- `server.tomcat.max-http-header-size` should be replaced with `server.max-http-header-size`.
+
