@@ -177,5 +177,15 @@ Maven会解析各个直接依赖的POM，将那些必要的间接依赖，以传
 
 `Unused declared dependencies`，意指项目中未使用的，但显示声明的依赖。对于这类依赖，我们不应该简单地直接删除其声明。由于`dependency:analyze`只会分析编译主代码和测试代码需要用到的依赖，一些执行测试和运行时需要的依赖它就发现不了。
 
+### 冲突查找
+
+定位到`pom.xml`文件所在的位置运行命令：
+```xml
+    mvn -X compile dependency:tree -Dverbose >debug.log
+```
+
+在文件`debug.log`里查找是否有"omitted for conflict with"，如果有，则表示jar包有版本冲突。
+
+
 
 
