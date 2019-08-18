@@ -14,6 +14,19 @@
 	}
 ```
 
+### 增加远程仓库
+
+```
+	repositories {
+		mavenLocal()
+		maven { url "https://maven.aliyun.com/repository/public" }
+		maven { url "http://uk.maven.org/maven2/" }
+		maven { url "http://repo.springsource.org/plugins-release" }
+	}
+```
+
+Tip: `repositories`元素有2处，都需要修改，分别位于`buildscript`和`configure`元素中.
+
 Tip: Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a `settings.xml`, this location will be used. The `settings.xml` in `USER_HOME/.m2` takes precedence over the `settings.xml` in `M2_HOME/conf`. If no `settings.xml` is available, Gradle uses the default location `USER_HOME/.m2/`repository.
 
 ### Install all spring-\* jars into your local Maven cache
