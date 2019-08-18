@@ -31,7 +31,7 @@ Tip: Gradle uses the same logic as Maven to identify the location of your local 
 
 ### Install all spring-\* jars into your local Maven cache
 ```
-    ./gradlew install
+    ./gradlew install -x javadoc
 ```
 
 ### Compile and test; build all jars, distribution zips, and docs
