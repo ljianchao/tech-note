@@ -2,9 +2,13 @@
 
 # In logback-classic
 
-Logback-classic offers two types of filters, regular filters and turbo filters.
+Logback-classic offers two types of filters, `regular filters` and `turbo filters`.
 
 ## Regular filters
+
+常规的`logback-classic`过滤器扩展了Filter抽象类，它基本上由一个以`ILoggingEvent`实例作为参数的`decision（）`方法组成。
+
+过滤器按有序列表组织，基于三元逻辑。按顺序调用每个过滤器的`decide(ILoggingEvent event)`方法。该方法返回`FilterReply`枚举值中的一个，即`DENY`，`NEUTRAL`，`ACCEPT`中的一个。如果`decide()`返回的值为`DENY`，则会立即删除日志事件，而不会查询剩余的过滤器。如果返回的值为`NEUTRAL`，则查询列表中的下一个过滤器。如果没有其他过滤器可供参考，则会正常处理日志记录事件。如果返回的值为`ACCEPT`，则会立即处理日志事件，跳过其余过滤器的调用。
 
 ### LevelFilter
 
