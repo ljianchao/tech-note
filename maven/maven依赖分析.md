@@ -34,7 +34,7 @@ dependency配置示例如下：
 - `test`：测试依赖范围。此依赖范围的Maven依赖，只对于测试`classpath`有效。只有在编译测试代码及运行测试的时候才需要。
 - `provided`：已提供依赖范围。此依赖范围的Maven依赖，对于编译和测试`classpath`有效，在运行时无效。典型例子`servlet-api`，编译和测试项目的时候需要该依赖，但在运行项目的时候，由于容器已提供，就不需要Maven重复地引入一遍。
 - `runtime`：运行时依赖范围。此依赖范围的Maven依赖，对于测试和运行`classpath`有效，但在编译主代码时无效。`JDBC`驱动实现，项目主代码的编译只需要`JDK`提供的`JDBC`的接口，只有在执行测试或者运行项目的时候才需要实现上述接口的具体`JDBC`驱动。
-- `system`：系统依赖范围。依赖范围和`provided`范围完全一致。使用`system`范围的依赖必须通过`systemPaht`元素显示指定依赖文件的路径。此类依赖不是通过Maven仓库解析的，且与本机系统绑定，可能造成构建的不可移植，请谨慎使用。`systemPath`元素可以引用环境变量，如：
+- `system`：系统依赖范围。依赖范围和`provided`范围完全一致。使用`system`范围的依赖必须通过`systemPath`元素显示指定依赖文件的路径。此类依赖不是通过Maven仓库解析的，且与本机系统绑定，可能造成构建的不可移植，请谨慎使用。`systemPath`元素可以引用环境变量，如：
 ```xml
     <dependency>
         <groupId>javax.sql</groupId>
