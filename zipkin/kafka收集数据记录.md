@@ -1,0 +1,126 @@
+## kafka拦截生成的消息记录
+
+发送端记录
+```json
+[
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "parentId":"8bf9c7f30f0512c3",
+        "id":"3d9fbbc0476b9210",
+        "kind":"CLIENT",
+        "name":"get",
+        "timestamp":1567481193530133,
+        "duration":7891,
+        "localEndpoint":{
+            "serviceName":"frontend",
+            "ipv4":"172.28.87.36"
+        },
+        "tags":{
+            "http.method":"GET",
+            "http.path":"/api"
+        }
+    },
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "parentId":"8bf9c7f30f0512c3",
+        "id":"e54ce6511f8504df",
+        "kind":"PRODUCER",
+        "name":"send",
+        "timestamp":1567481193539263,
+        "duration":42360,
+        "localEndpoint":{
+            "serviceName":"frontend",
+            "ipv4":"172.28.87.36"
+        },
+        "remoteEndpoint":{
+            "serviceName":"kafka"
+        },
+        "tags":{
+            "kafka.topic":"backend"
+        }
+    },
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "id":"8bf9c7f30f0512c3",
+        "kind":"SERVER",
+        "name":"get /",
+        "timestamp":1567481193526272,
+        "duration":59488,
+        "localEndpoint":{
+            "serviceName":"frontend",
+            "ipv4":"172.28.87.36"
+        },
+        "remoteEndpoint":{
+            "ipv6":"::1",
+            "port":50700
+        },
+        "tags":{
+            "http.method":"GET",
+            "http.path":"/",
+            "mvc.controller.class":"Frontend",
+            "mvc.controller.method":"callBackend"
+        }
+    }
+]
+```
+
+消费端记录
+```json
+[
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "parentId":"8bf9c7f30f0512c3",
+        "id":"3d9fbbc0476b9210",
+        "kind":"SERVER",
+        "name":"get /api",
+        "timestamp":1567481193534163,
+        "duration":4069,
+        "localEndpoint":{
+            "serviceName":"backend",
+            "ipv4":"172.28.87.36"
+        },
+        "remoteEndpoint":{
+            "ipv4":"127.0.0.1",
+            "port":50718
+        },
+        "tags":{
+            "http.method":"GET",
+            "http.path":"/api",
+            "mvc.controller.class":"Backend",
+            "mvc.controller.method":"printDate"
+        },
+        "shared":true
+    },
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "parentId":"e54ce6511f8504df",
+        "id":"42f606719455ec97",
+        "kind":"CONSUMER",
+        "name":"poll",
+        "timestamp":1567481193583025,
+        "duration":1,
+        "localEndpoint":{
+            "serviceName":"backend",
+            "ipv4":"172.28.87.36"
+        },
+        "remoteEndpoint":{
+            "serviceName":"kafka"
+        },
+        "tags":{
+            "kafka.topic":"backend"
+        }
+    },
+    {
+        "traceId":"5d6ddd69ebb230818bf9c7f30f0512c3",
+        "parentId":"42f606719455ec97",
+        "id":"908492a7b64821b3",
+        "name":"on-message",
+        "timestamp":1567481193584007,
+        "duration":279,
+        "localEndpoint":{
+            "serviceName":"backend",
+            "ipv4":"172.28.87.36"
+        }
+    }
+]
+```
