@@ -2,11 +2,11 @@
 
 常用转换命令如下：
 
-> ffmpeg -i out.ogv -vcodec h264 out.mp4
-> ffmpeg -i out.ogv -vcodec mpeg4 out.mp4
-> ffmpeg -i out.ogv -vcodec libxvid out.mp4
-> ffmpeg -i out.mp4 -vcodec wmv1 out.wmv
-> ffmpeg -i out.mp4 -vcodec wmv2 out.wmv
+> ffmpeg -i out.ogv -vcodec h264 out.mp4 
+> ffmpeg -i out.ogv -vcodec mpeg4 out.mp4 
+> ffmpeg -i out.ogv -vcodec libxvid out.mp4 
+> ffmpeg -i out.mp4 -vcodec wmv1 out.wmv 
+> ffmpeg -i out.mp4 -vcodec wmv2 out.wmv 
 `-i`后面是输入文件名。`-vcodec`后面是编码格式，`h264`最佳，但Windows系统默认不安装。如果是要插入`ppt`的视频，选择`wmv1`或`wmv2`基本上万无一失。
 
 附加选项：`-r`指定帧率，`-s`指定分辨率，`-b`指定比特率；于此同时可以对声道进行转码，`-acodec`指定音频编码，`-ab`指定音频比特率，`-ac`指定声道数，例如
@@ -15,11 +15,11 @@
 # 剪切
 
 用`-ss`和`-t`选项， 从第30秒开始，向后截取10秒的视频，并保存：
-> ffmpeg -i input.wmv -ss 00:00:30.0 -c copy -t 00:00:10.0 output.wmv
-> ffmpeg -i input.wmv -ss 30 -c copy -t 10 output.wmv
+> ffmpeg -i input.wmv -ss 00:00:30.0 -c copy -t 00:00:10.0 output.wmv 
+> ffmpeg -i input.wmv -ss 30 -c copy -t 10 output.wmv 
 
 达成相同效果，也可以用`-ss`和`-to`选项， 从第30秒截取到第40秒：
-> ffmpeg -i input.wmv -ss 30 -c copy -to 40 output.wmv
+> ffmpeg -i input.wmv -ss 30 -c copy -to 40 output.wmv 
 
 `-c copy`可以保持视频和音频和源完全一致的配置。
 
