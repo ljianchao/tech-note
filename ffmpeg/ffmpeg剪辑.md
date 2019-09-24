@@ -39,6 +39,24 @@ ffmpeg -i input.wmv -ss 30 -c copy -to 40 output.wmv
 ```shellffmpeg -ss 00:01:00 -i video.mp4 -to 00:02:00 -c copy -copyts cut.mp4 
 ```
 
+# 合并
+
+`FFmpeg concat`分离器方法成功率很高，也是最好的，但是需要`FFmpeg 1.1`以上版本。先创建一个文本文件`filelist.txt`：
+
+```
+file 'input1.mkv'
+file 'input2.mkv'
+file 'input3.mkv'
+```
+
+然后：
+```shell
+    ffmpeg -f concat -i filelist.txt -c copy output.mkv
+```
+
+注意：
+> 使用`FFmpeg concat`分离器时，如果文件名有奇怪的字符，要在`filelist.txt`中转义。
+
 # 参考
 
 - [ffmpeg Documenation](http://ffmpeg.org/ffmpeg.html)
