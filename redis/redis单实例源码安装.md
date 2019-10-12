@@ -37,7 +37,7 @@ Note：如果上面的make过程失败，一般是由于系统中未安装`gcc`�
 
 ## 设置环境变量
 
-将redis的命令所在目录添加到系统参数`PATH`中，在`~/.bash_profile`文件末尾添加如下内容：
+为了快捷使用redis相关命令，将redis的命令所在目录添加到系统参数`PATH`中，在`~/.bash_profile`文件末尾添加如下内容：
 
 ```bash
     #export REDIS_HOME=/usr/local/redis
@@ -53,7 +53,7 @@ Note：如果上面的make过程失败，一般是由于系统中未安装`gcc`�
 
 ## 启动redis服务器
 
-### 命令启动服务器
+### 命令式启动服务器
 
 命令启动服务器的方式适用于开发和测试环境。
 
@@ -76,7 +76,7 @@ Note：如果上面的make过程失败，一般是由于系统中未安装`gcc`�
 ```
 
 
-### 脚本方式启动服务器
+### 脚本式启动服务器
 
 Redis源码中含有初始化的启动脚本，位于`utils/redis_init_script`，拷贝该脚本到`/etc/init.d`中（`/etc/init.d`是一个符号链接文件，链接指向`/etc/rc.d/init.d`），文件名修改为`redis_端口号`
 
@@ -129,7 +129,7 @@ Redis源码中含有初始化的启动脚本，位于`utils/redis_init_script`�
 ```
 
 
-### Redis做成服务
+### 服务式启动Redis
 
 `chkconfig`命令需要在redis启动脚本中增加配置，加在`#!/bin/sh`下一行
 
