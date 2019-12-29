@@ -81,6 +81,9 @@ Note
 
 # 安装
 
+下载地址
+> https://dev.mysql.com/downloads/mysql/  
+
 解压tar包
 > tar xzvf mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz
 
