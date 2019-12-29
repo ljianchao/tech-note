@@ -82,7 +82,7 @@ Note
 # 安装
 
 下载地址
-> https://dev.mysql.com/downloads/mysql/  
+> https://downloads.mysql.com/archives/community/ 
 
 解压tar包
 > tar xzvf mysql-5.7.26-linux-glibc2.12-x86_64.tar.gz
@@ -159,14 +159,14 @@ Note：可能出现如下错误
 
 ```properties
 
-    basedir = /usr/local/mysql
-    datadir = /usr/local/mysql/data
-    character_set_server=uft8
-    
-    [client]
-    
-    default-character-set=uft8
-    #sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+basedir = /usr/local/mysql
+datadir = /usr/local/mysql/data
+character_set_server=uft8
+
+[client]
+
+default-character-set=uft8
+#sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 
 ```
 
