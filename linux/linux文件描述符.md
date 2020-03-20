@@ -8,7 +8,7 @@
 
 每个进程按照惯例都会至少有三个打开的文件描述符：0、1和2，除非进程显示地关闭它们，0是`标准输入（stdin）`，1是`标准输出（stdout）`，2是`标准错误(stderr)`。C标准库提了预处理器宏：`STDIN_FILENO`，`STDOUT_FILENO`和`STDERR_FILENO`宏，以取代对以上整数的直接引用。
 
-![标准文件描述符使用过程](resources\fd-std.png)
+![标准文件描述符使用过程](resources/fd-std.png)
 
 ## 参考
 
