@@ -32,7 +32,7 @@ linux下最大文件描述符的限制有两个方面，一个是用户级的限
 
 查看系统级限制的数量，命令：`sysctl -a | grep fs.file-max`或者`cat /proc/sys/fs/file-max`。
 
-###　修改限制数量
+### 修改限制数量
 
 修改用户级限制
 
