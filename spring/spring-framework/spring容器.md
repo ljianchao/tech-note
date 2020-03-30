@@ -32,3 +32,34 @@ spring容器中bean的生命周期相对比较复杂，下图展示了bean装载
 - 如果bean实现了`BeanPostProcessor`接口，Spring将调用它们的`postProcessAfterInitialization()`方法；
 - 此时，bean已经准备就绪，可以被应用程序使用了，它们将一直驻留在应用上下文中， 直到该应用上下文被销毁；
 - 如果bean实现了`DisposableBean`接口，Spring将调用它的`destroy()`接口方法。同 样，如果bean使用`destroy-method`声明了销毁方法，该方法也会被调用。
+
+## 装配Bean
+
+Spring提供了三种主要的装配机制：
+
+- 在XML中进行显示配置
+- 在Java中进行显示配置
+- 隐式的bean发现机制和自动装配
+
+### 自动化装配bean
+
+Spring从两个角度来实现自动化装配：
+
+- 组件扫描（component scanning）：Spring会自动发现应用上下文中创建的bean
+- 自动装配（autowiring）：Spring自动满足bean之间的依赖
+
+开启组件扫描的两种方式：
+
+- XML中使用以下配置：
+    ```xml
+        <context:component-scan base-package="cn.demo.spring.service"/>
+    ```
+
+- java中使用以下配置：
+    ```java
+        @Configuration
+        @ComponentScan(basePackages = {"cn.demo.spring.service"})
+        public class MainConfiguration {
+
+        }
+    ```
