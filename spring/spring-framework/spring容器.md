@@ -85,17 +85,7 @@ In some respects, the Spring container’s role in regard to a prototype-scoped 
 
 在某些方面，Spring容器在原型作用域Bean方面的角色是Java new运算符的替代。超过该时间点的所有生命周期管理必须由客户端处理。
 
-#### 对原型bean有依赖性的单例作用域Bean（Singleton beans with prototype-bean dependencies）
-
-When you use singleton-scoped beans with dependencies on prototype beans, be aware that dependencies are resolved at instantiation time. Thus if you dependency-inject a prototype-scoped bean into a singleton-scoped bean, a new prototype bean is instantiated and then dependency-injected into the singleton bean. The prototype instance is the sole instance that is ever supplied to the singleton-scoped bean.
-
-当您使用对原型bean有依赖性的单例作用域Bean时，请注意，依赖关系在实例化时已解析的。 因此，如果将依赖项为原型的bean依赖注入到单例范围的bean中，则将实例化新的原型bean，然后将依赖项注入到单例bean中。 原型实例是唯一提供给单实例化bean的实例。
-
-However, suppose you want the singleton-scoped bean to acquire a new instance of the prototype-scoped bean repeatedly at runtime. You cannot dependency-inject a prototype-scoped bean into your singleton bean, because that injection occurs only once, when the Spring container is instantiating the singleton bean and resolving and injecting its dependencies. If you need a new instance of a prototype bean at runtime more than once, see the section called “Method injection”.
-
-但是，假设您希望单例作用域的bean在运行时重复获取原型作用域的bean的新实例。 您不能将原型作用域的bean依赖项注入到您的单例bean中，因为当Spring容器实例化单例bean，并解析和注入其依赖项时，该注入仅发生一次。 如果您在运行时不止一次需要原型bean的新实例，请参见“方法注入”一节。
-
-#### 代码示例
+#### 原型bean声明
 
 使用组件扫描来发现和声明bean
 
@@ -114,6 +104,93 @@ However, suppose you want the singleton-scoped bean to acquire a new instance of
     public class PrototypeScopeScan {
     }
 ```
+
+#### 对原型bean有依赖性的单例作用域Bean（Singleton beans with prototype-bean dependencies）
+
+When you use singleton-scoped beans with dependencies on prototype beans, be aware that dependencies are resolved at instantiation time. Thus if you dependency-inject a prototype-scoped bean into a singleton-scoped bean, a new prototype bean is instantiated and then dependency-injected into the singleton bean. The prototype instance is the sole instance that is ever supplied to the singleton-scoped bean.
+
+当您使用对原型bean有依赖性的单例作用域Bean时，请注意，依赖关系在实例化时已解析的。 因此，如果将依赖项为原型的bean依赖注入到单例范围的bean中，则将实例化新的原型bean，然后将依赖项注入到单例bean中。 原型实例是唯一提供给单实例化bean的实例。
+
+However, suppose you want the singleton-scoped bean to acquire a new instance of the prototype-scoped bean repeatedly at runtime. You cannot dependency-inject a prototype-scoped bean into your singleton bean, because that injection occurs only once, when the Spring container is instantiating the singleton bean and resolving and injecting its dependencies. If you need a new instance of a prototype bean at runtime more than once, see the section called “**Method injection**”.
+
+但是，假设您希望单例作用域的bean在运行时重复获取原型作用域的bean的新实例。 您不能将原型作用域的bean依赖项注入到您的单例bean中，因为当Spring容器实例化单例bean，并解析和注入其依赖项时，该注入仅发生一次。 如果您在运行时不止一次需要原型bean的新实例，请参见“方法注入”一节。
+
+##### Method Injection
+
+`Lookup Method Injection`是容器重写容器管理的Bean上的方法的能力，以返回容器中另一个命名Bean的查找结果。查找通常涉及原型bean。 Spring框架通过使用从CGLIB库生成字节码来动态生成覆盖该方法的子类来实现此方法注入。
+
+```java
+    /**
+    * 被依赖的Prototype作用域范围的Bean
+    */
+    @Component
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public class PrototypeScopeScan {
+
+        public void showObject() {
+            System.out.println("The instance of PrototypeScope is " + this);
+        }
+    }
+
+    /**
+    * 单例作用域bean，需要依赖一个原型作用域bean
+    */
+    @Component
+    public abstract class SingletonWithProtypeDep {
+
+        private PrototypeScopeScan prototypeScope;
+
+        /**
+        * 构造函数注入的bean会生成单例的bean
+        * @param prototypeScope
+        */
+        public SingletonWithProtypeDep(PrototypeScopeScan prototypeScope) {
+            this.prototypeScope = prototypeScope;
+        }
+
+        public void showDependencies() {
+            System.out.println("The instance of SingletonWithPrototypeDe is " + this);
+            prototypeScope.showObject();
+        }
+
+        public void showDependenciesWithProtypeDep() {
+            PrototypeScopeScan protype = createProtypeSope();
+            System.out.println("The instance of SingletonWithPrototypeDe is " + this);
+            protype.showObject();
+        }
+
+        /**
+        * Lookup method injection会重载容器管理的bean,
+        * Spring框架通过使用从CGLIB库生成字节码来动态生成覆盖该方法的子类来实现此方法注入。
+        * 方法必须是`abstract`，该类的实例必须配置为@Component，不能使用@Bean的形式
+        * @return
+        */
+        @Lookup
+        protected abstract PrototypeScopeScan createProtypeSope();
+    }
+
+    public class SpringApplication {
+
+        public static void main( String[] args ) {
+            ApplicationContext context =new AnnotationConfigApplicationContext(AppConfiguration.class);
+            SingletonWithProtypeDep singletonWithPrototypeDe = context.getBean(SingletonWithProtypeDep.class);
+
+            System.out.println("单例bean通过构造函数注入原型bean");
+            for (int i = 0; i < 5; i++) {
+                singletonWithPrototypeDe.showDependencies();
+            }
+
+            System.out.println("\n单例bean通过Look method injection注入原型bean");
+            for (int i = 0; i < 5; i++) {
+                singletonWithPrototypeDe.showDependenciesWithProtypeDep();
+            }
+        }
+    }
+
+```
+
+
+
 
 
 
