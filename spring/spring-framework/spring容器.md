@@ -63,3 +63,57 @@ Spring从两个角度来实现自动化装配：
 
         }
     ```
+
+## Bean的作用域（Bean scopes）
+
+在默认情况下，Spring应用上下文中所有bean都是作为以单例（singleton）的形式创建的。
+
+Spring定义了多种作用域，可以基于这些作用域创建bean，包括：
+
+- 单例（Singleton）：在整个应用中，只创建bean的一个实例。
+- 原型（Prototype）：每次**注入（基于构造函数的注入，只在Spring容器启动时发生一次）**或者**通过Spring应用上下文获取**的时候，都会创建一个新的bean实例。
+- 会话（Session）：在**Web**应用中，为每个会话创建一个bean实例。
+- 请求（Request）：在**Web**应用中，为每个请求创建一个bean实例。
+
+### 原型作用域（The prototype scope）
+
+In contrast to the other scopes, Spring does not manage the complete lifecycle of a prototype bean: the container instantiates, configures, and otherwise assembles a prototype object, and hands it to the client, with no further record of that prototype instance. Thus, although initialization lifecycle callback methods are called on all objects regardless of scope, **in the case of prototypes, configured destruction lifecycle callbacks are not called**. The client code must clean up prototype-scoped objects and release expensive resources that the prototype bean(s) are holding. To get the Spring container to release resources held by prototype-scoped beans, try using a custom bean post-processor, which holds a reference to beans that need to be cleaned up.
+
+与其他作用域相比，Spring不能管理原型bean的完整生命周期：容器实例化，配置和组装原型对象，然后将其交给客户端，而没有该原型实例的进一步记录。因此，尽管 在不考虑范围的情况下 在所有对象上都调用了初始化生命周期回调方法，**但对于原型bean实例而言，不会调用已配置的销毁生命周期的回调方法**。客户端代码必须清除原型作用域的对象，并释放原型Bean持有的昂贵资源。为了使Spring容器释放原型作用域下的bean所拥有的资源，请尝试使用自定义bean后置处理器，该处理器具有对需要清理的bean的引用。
+
+In some respects, the Spring container’s role in regard to a prototype-scoped bean is a replacement for the Java new operator. All lifecycle management past that point must be handled by the client. 
+
+在某些方面，Spring容器在原型作用域Bean方面的角色是Java new运算符的替代。超过该时间点的所有生命周期管理必须由客户端处理。
+
+#### 对原型bean有依赖性的单例作用域Bean（Singleton beans with prototype-bean dependencies）
+
+When you use singleton-scoped beans with dependencies on prototype beans, be aware that dependencies are resolved at instantiation time. Thus if you dependency-inject a prototype-scoped bean into a singleton-scoped bean, a new prototype bean is instantiated and then dependency-injected into the singleton bean. The prototype instance is the sole instance that is ever supplied to the singleton-scoped bean.
+
+当您使用对原型bean有依赖性的单例作用域Bean时，请注意，依赖关系在实例化时已解析的。 因此，如果将依赖项为原型的bean依赖注入到单例范围的bean中，则将实例化新的原型bean，然后将依赖项注入到单例bean中。 原型实例是唯一提供给单实例化bean的实例。
+
+However, suppose you want the singleton-scoped bean to acquire a new instance of the prototype-scoped bean repeatedly at runtime. You cannot dependency-inject a prototype-scoped bean into your singleton bean, because that injection occurs only once, when the Spring container is instantiating the singleton bean and resolving and injecting its dependencies. If you need a new instance of a prototype bean at runtime more than once, see the section called “Method injection”.
+
+但是，假设您希望单例作用域的bean在运行时重复获取原型作用域的bean的新实例。 您不能将原型作用域的bean依赖项注入到您的单例bean中，因为当Spring容器实例化单例bean，并解析和注入其依赖项时，该注入仅发生一次。 如果您在运行时不止一次需要原型bean的新实例，请参见“方法注入”一节。
+
+#### 代码示例
+
+使用组件扫描来发现和声明bean
+
+```java
+    @Component
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public class PrototypeScopeScan {
+    }
+```
+
+在java配置中声明bean
+
+```java
+    @Component
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public class PrototypeScopeScan {
+    }
+```
+
+
+
