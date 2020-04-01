@@ -190,6 +190,26 @@ However, suppose you want the singleton-scoped bean to acquire a new instance of
 
 ```
 
+### 会话和请求作用域
+
+在Web应用中，实例化在会话和请求范围内共享的bean是非常有价值的。例如会话作用域内的购物车bean。
+
+每个容器中的单例bean只能实例化一次，并且它的所有依赖项也只会被注入一次。
+
+当一个较长生命期的bean（如单例bean）依赖一个较短生命期的bean（如会话bean）时，Spring容器会注入一个到该短生命期bean的代理。这个代理会暴露与原bean相同的方法。当调用其方法时，代理会对其进行懒解析并将调用委托给会话作用域内真正的bean实例。
+
+代码示例：
+
+```java
+    @Component
+    @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public class SessionScope {
+    }
+```
+
+
+
+
 
 
 
