@@ -99,9 +99,10 @@ In some respects, the Spring container’s role in regard to a prototype-scoped 
 在java配置中声明bean
 
 ```java
-    @Component
+    @Bean
     @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public class PrototypeScopeScan {
+    public PrototypeScope prototypeScope() {
+        return new PrototypeScope();
     }
 ```
 
