@@ -1,4 +1,6 @@
 
+# 安装操作
+
 ## 网络配置
 
 CentOS 7安装后，网络默认是不能访问的，需要进行手动配置
@@ -30,3 +32,8 @@ CentOS 7安装后，网络默认是不能访问的，需要进行手动配置
 ### ifconfig/netstat
 
 ifconfig 及 netstat 工具程序在 CentOS 5 及 6 的应用手册内被置标为降级已接近十年，而 Redhat 决定在 CentOS 7 不会缺省安装 net-tools 组件。其中一个转换的原因就是 ifconfig 不会显示界面卡所拥有的全部 IP 位置 —— 请改用 ip 指令。取而代之的工具是 ss 和 ip。假如你真的、真的很需要 ifconfig 和 netstat，你可执行 `yum install net-tools`。
+
+# 参考
+
+- [有关 CentOS-7 的问题](https://wiki.centos.org/zh/FAQ/CentOS7)
+- [初装CentOS环境配置（CentOS7网络配置）](https://blog.csdn.net/loveyou388i/article/details/80797629)
