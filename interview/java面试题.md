@@ -27,7 +27,7 @@ Java是面向对象的编程语言，一切都是对象，但是为了编程的�
 因为将一个数左移n 位，就相当于乘以了2 的n 次方，那么，一个数乘以8 只要将其左移3 位即可，而位运算cpu 直接支持的，效率最高，所以，2 乘以8 等於几的最效率的方法是2 << 3。
 
 
-5. 是否可以继承 是否可以继承 是否可以继承 String类？
+1. 是否可以继承 String类？
 
 不能被继承，因为String类有final修饰符，而final修饰的类是不能被继承的。
 
@@ -89,3 +89,7 @@ Vector属于遗留容器（Java早期的版本中提供的容器，除此之外�
 方法3：Class.forName()，例如：Class.forName(“java.lang.String”)
 
 12. 在 Linux中查看日志使用哪个命令? 编辑文件使用什么命令?查看进程使用什么命令 ?
+
+13. synchronized实现原理？
+
+参考[深入理解Java并发之synchronized实现原理](https://blog.csdn.net/javazejian/article/details/72828483)
