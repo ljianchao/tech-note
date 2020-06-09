@@ -63,3 +63,7 @@ https://search.maven.org/
 https://maven.aliyun.com/mvn/search
 https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/build-tool-plugins.html#build-tool-plugins
 https://blog.csdn.net/u010376788/article/details/56968353
+
+https://www.pretius.com/how-to-use-mybatis-effectively-perform-batch-db-operations/
+https://blog.csdn.net/lgh1117/article/details/80212924
+https://blog.csdn.net/liu306487103/article/details/79131821
