@@ -67,3 +67,5 @@ https://blog.csdn.net/u010376788/article/details/56968353
 https://www.pretius.com/how-to-use-mybatis-effectively-perform-batch-db-operations/
 https://blog.csdn.net/lgh1117/article/details/80212924
 https://blog.csdn.net/liu306487103/article/details/79131821
+https://www.jianshu.com/p/0f4b7bc4d22c
+https://www.cnblogs.com/tommy-huang/p/4540407.html
