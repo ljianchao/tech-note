@@ -30,7 +30,7 @@ spring:
     jackson:
         time-zone: GMT+8
     application:
-        name: youlin-scheduler-job
+        name: scheduler-job
     quartz:
         #数据库方式
         job-store-type: jdbc
@@ -52,55 +52,15 @@ spring:
                         schedulerDS:
                             provider: hikaricp
                             driver: com.mysql.cj.jdbc.Driver
-                            URL: jdbc:mysql://192.168.1.123:3309/youlin-scheduler-job?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=CTT&useSSL=false
-                            user: yltapi
-                            password: yltest@2018
+                            URL: jdbc:mysql://192.168.1.203:3309/scheduler-job?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&serverTimezone=CTT&useSSL=false
+                            user: root
+                            password: 123456
                             maxConnections: 15
                     threadPool:
                         class: org.quartz.simpl.SimpleThreadPool
                         threadCount: 15
                         threadPriority: 5
                         threadsInheritContextClassLoaderOfInitializingThread: true
-
-dubbo:
-    registry:
-        protocol: zookeeper
-        address: 127.0.0.1:2181
-        id: youlin-registry-01
-    protocol:
-        port: 20895
-        name: dubbo
-        id: dubbo
-        status: server
-        threadpool: cached
-        threads: 1000
-        accepts: 1000
-    application:
-        qos-enable: true
-        name: youlin-dubbo-scheduler-job-name01
-        id: youlin-dubbo-scheduler-job-id01
-        qos-port: 22235
-    scan:
-        basePackages: com.youlin365.scheduler.job.task
-    consumer:
-        check: false
-        timeout: 10000
-    provider:
-        timeout: 10000
-youlin:
-    service:
-        cache:
-            group: youlin-core-cache
-        version: 1.0.0  # 标识dubbo服务的版本号
-
-youlinSchedulerJob:
-    cronExp:
-        schoolEventLogJob: "0 0 3 * * ?"    # 每天凌晨3点执行一次
-        schoolFoodBookJob: "1 0 0 ? * 1"    # 每周日凌晨执行一次
-        userReportJob: "1 0 0 ? * 2"    # 每周一凌晨执行一次
-        userReportCreateJob: "1 0 0 ? * 4,5,6,7,1"    # 每周三四五六日凌晨执行一次
-        sendSMSNoCookbookJob: "0 0 9 ? * 6"    # 每周五上午9点执行一次
-        sendSMSNoCookbookLinkJob: "0 0 9 ? * 7"    # 每周六上午9点执行一次
 logging:
     config: classpath:config/log4j2-spring.xml
 ```
@@ -109,7 +69,7 @@ quartz配置文件`quartz.properties`内容
 
 ```properties
 #调度标识名 集群中每一个实例都必须使用相同的名称
-org.quartz.scheduler.instanceName=youlin-scheduler
+org.quartz.scheduler.instanceName=scheduler
 #调度器实例编号自动生成，每个实例不能不能相同
 org.quartz.scheduler.instanceId=AUTO
 #开启分布式部署，集群
@@ -145,7 +105,7 @@ org.quartz.jobStore.tablePrefix=QRTZ_
 #数据库别名 随便取
 #org.quartz.jobStore.dataSource=qzDS
 #org.quartz.dataSource.qzDS.driver=com.mysql.jdbc.Driver
-#org.quartz.dataSource.qzDS.URL=jdbc:mysql://192.168.184.135:3306/quartzdb?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+#org.quartz.dataSource.qzDS.URL=jdbc:mysql://192.168.1.203:3306/quartzdb?useSSL=false&useUnicode=true&characterEncoding=UTF-8
 #org.quartz.dataSource.qzDS.user=root
 #org.quartz.dataSource.qzDS.password=123456
 #org.quartz.dataSource.qzDS.maxConnections=10
