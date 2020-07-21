@@ -1,0 +1,52 @@
+#
+# This group is read both both by the client and the server
+# use it for options that affect everything
+#
+#[client-server]
+
+#
+# include all files from the config directory
+#
+!includedir /etc/my.cnf.d
+[mysqld_safe]
+# 记录mysql线程id号
+pid-file=/data/mysql/3306/mysqlId.pid
+
+[mysql]
+port=3306
+# 默认字符集
+default-character-set=utf8
+
+[client]
+# 远程客户端连接属性
+port=3306
+# 临时文件，mysql启动时产生，停止时消失
+socket=/data/mysql/3306/mysqld_3306.sock
+
+[mysqld]
+bind_address=0.0.0.0
+port=3306
+# 记录mysqld线程id号
+pid_file=/data/mysql/3306/mysqld.pid
+character_set_server=utf8
+open_files_limit=65536
+# mysql安装路径
+basedir=/usr/local/mysql
+# mysql的数据文件路径
+datadir=/data/mysql/3306
+# 临时文件路径
+tmpdir=/data/mysql/3306
+# 错误日志
+log-error=/data/mysql/3306/alert.log
+socket=/data/mysql/3306/mysqld_3306.sock
+# binlog
+log-bin=/data/mysql/3306/mysqld-bin
+relay-log=/data/mysql/3306/relay-bin
+server_id=43132
+binlog_format=row
+## 允许备库将其重放的日志也记录到自身的二进制日志中
+log_slave_updates=1
+## 阻止任何没有特权权限的线程修改数据
+read_only=1
+# 半同步复制
+rpl_semi_sync_slave_enabled=1
