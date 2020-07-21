@@ -139,6 +139,12 @@ mvn clean -P dev source:jar install deploy -Dmaven.test.skip
 -U参数强制检查快照版本的更新
 mvn clean -U -P dev source:jar install -Dmaven.test.skip=true
 
+## 编译指定模块及依赖模块
+
+```shell
+mvn clean install -pl youlin-remote-api -am
+```
+
 ## findbugs测试
 mvn clean package site -Dmaven.test.skip
 
