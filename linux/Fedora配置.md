@@ -1,8 +1,21 @@
 ## linux安装vmvare-tools
     sudo ./vmware-install.pl
 
-## 创建java文件夹    
-    sudo mkdir java
+## 安装jdk
+
+添加全局环境变量，编辑`/etc/profile`文件
+
+```
+export JAVA_HOME=/opt/soft/jdk1.8.0_131
+export CLASSPATH=.:${JAVA_HOME}/jre/lib/rt.jar:${JAVA_HOME}/lib/dt.jar:${JAVA_HOME}/lib/tools.jar
+export PATH=$PATH:${JAVA_HOME}/bin
+```
+
+刷新配置文件
+
+```
+source /etc/profile
+```
 
 ## 修改root默认密码
     sudo passwd  root
