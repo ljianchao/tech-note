@@ -145,6 +145,16 @@ SELECT * FROM mysql.slow_log;
 SET GLOBAL slow_query_log='OFF';    -- 关闭慢sql监控
 ```
 
+## 内存
+
+SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
+
+SHOW GLOBAL VARIABLES LIKE '%sort_buffer_size%';
+
+SHOW GLOBAL VARIABLES LIKE 'key_buffer_size';
+
+SHOW GLOBAL VARIABLES LIKE 'innodb_io_capacity';
+
 # 基本操作
 
 ## 字符串索引
