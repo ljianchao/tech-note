@@ -154,6 +154,14 @@ PUT http://192.168.255.128:9200/demo_index -d '
                     }
                 }
             }
+        },
+        "similarity": {
+            "youlin_similarity": {
+                "type": "BM25",
+                "b": 0.75,
+                "k1": 0.6,
+                "discount_overlaps": true
+            }
         }
     },
     "mappings": {
@@ -177,7 +185,8 @@ PUT http://192.168.255.128:9200/demo_index -d '
                     "keyword": {
                         "type": "keyword"
                     }
-                }
+                },
+                "similarity": "youlin_similarity"
             },
             "timestamp": {
                 "type": "date"
