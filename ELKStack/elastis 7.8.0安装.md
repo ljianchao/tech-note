@@ -61,7 +61,7 @@ sysctl -p
 修改`elasticsearch.yml`
 
 ```
-cluster.name: youlin-es
+cluster.name: my-es
 node.name: node-1
 cluster.initial_master_nodes: ["node-1"]
 
@@ -139,24 +139,30 @@ PUT http://192.168.255.128:9200/demo_index -d '
         "index": {
             "analysis": {
                 "analyzer": {
+                    "ik_syno_smart": {
+                        "tokenizer": "ik_smart",
+                        "filter": [
+                            "my_synonym_filter"
+                        ]
+                    },                  
                     "ik_syno_max": {
                         "tokenizer": "ik_max_word",
                         "filter": [
-                            "youlin_synonym_filter"
+                            "my_synonym_filter"
                         ]
                     }
                 },
                 "filter": {
-                    "youlin_synonym_filter": {
+                    "my_synonym_filter": {
                         "type": "dynamic_synonym",
-                        "synonyms_path": "config/analysis/youlin_synonym.txt",
+                        "synonyms_path": "config/analysis/my_synonym.txt",
                         "interval": 60
                     }
                 }
             }
         },
         "similarity": {
-            "youlin_similarity": {
+            "my_similarity": {
                 "type": "BM25",
                 "b": 0.75,
                 "k1": 0.6,
@@ -170,7 +176,7 @@ PUT http://192.168.255.128:9200/demo_index -d '
             "name": {
                 "type": "text",
                 "analyzer": "ik_max_word",
-                "search_analyzer": "ik_syno_max",
+                "search_analyzer": "ik_syno_smart",
                 "fields": {
                     "keyword": {
                         "type": "keyword"
@@ -180,13 +186,13 @@ PUT http://192.168.255.128:9200/demo_index -d '
             "alias_names": {
                 "type": "text",
                 "analyzer": "ik_max_word",
-                "search_analyzer": "ik_syno_max",
+                "search_analyzer": "ik_syno_smart",
                 "fields": {
                     "keyword": {
                         "type": "keyword"
                     }
                 },
-                "similarity": "youlin_similarity"
+                "similarity": "my_similarity"
             },
             "timestamp": {
                 "type": "date"
@@ -211,14 +217,14 @@ PUT http://192.168.255.128:9200/demo_index -d '
                     "jieba_syno": {
                         "tokenizer": "jieba_search",
                         "filter": [
-                            "youlin_synonym_filter"
+                            "my_synonym_filter"
                         ]
                     }
                 },
                 "filter": {
-                    "youlin_synonym_filter": {
+                    "my_synonym_filter": {
                         "type": "dynamic_synonym",
-                        "synonyms_path": "config/analysis/youlin_synonym.txt",
+                        "synonyms_path": "config/analysis/my_synonym.txt",
                         "interval": 60
                     }
                 }
@@ -339,14 +345,14 @@ PUT http://192.168.255.128:9200/demo_index/_settings -d '
                     "ik_syno_max": {
                         "tokenizer": "ik_max_word",
                         "filter": [
-                            "youlin_synonym_filter"
+                            "my_synonym_filter"
                         ]
                     }
                 },
                 "filter": {
-                    "youlin_synonym_filter": {
+                    "my_synonym_filter": {
                         "type": "dynamic_synonym",
-                        "synonyms_path": "config/analysis/youlin_synonym.txt",
+                        "synonyms_path": "config/analysis/my_synonym.txt",
                         "interval": 60
                     }
                 }
