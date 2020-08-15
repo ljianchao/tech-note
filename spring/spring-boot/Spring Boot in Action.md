@@ -138,3 +138,42 @@ Spring Boot提供的条件化注解：
     </tr>
 </table>
 
+## 自定义配置
+
+有两种方式可以影响自动配置，**使用显示配置进行覆盖**和**使用属性进行精细化配置**。
+
+### 覆盖Spring Boot自动配置
+
+Spring Boot自动配置自带了很多配置类，每一个都能运用在你的应用程序里。它们都使用了Spring 4.0的**条件化配置**，可以在运行时判断这个配置是该被运用，还是该被忽略。
+
+### 通过属性文件外置配置
+
+Spring Boot自动配置的Bean提供了很多用于微调的属性。当你调整设置时，只要在**环境变量、Java系统属性、JNDI（Java Naming and Directory Interface）、命令行参数或者属性文件**里进行指定就好了。
+
+Spring Boot能从多种属性源获得属性，包括如下几处（列表按照优先级排序，任何在高优先级属性源里设置的属性都会覆盖低优先级的相同属性。例如，命令行参数会覆盖其他属性源里的属性）。
+
+- 命令行参数。
+- `java:comp/env`里的JNDI属性
+- JVM系统属性
+- 操作系统环境变量
+- 随机生成的带`random.*`前缀的属性（在设置其他属性时，可以引用它们，比如`${random.long}`）
+- 应用程序以外的`application.properties`或者`application.yml`文件
+- 打包在应用程序内的`application.properties`或者`application.yml`文件
+- 通过`@PropertySource标注的属性源`
+- 默认属性
+
+`application.properties`和`application.yml`文件能放在以下四个位置（按照优先级从高到低排序）
+
+- 外置，在相对于应用程序运行目录的`/config`子目录里。
+- 外置，在应用程序运行的目录里。
+- 内置，在`config`包内。
+- 内置，在`Classpath`根目录。
+
+此外在同一优先级位置同时有`application.properties`和`application.yml`，那么`application.yml`里的属性会覆盖`application.properties`里的属性。
+
+#### 应用程序Bean的配置外置
+
+在一个类里上配置`@ConfigurationProperties`注解来实现收集属性的功能。
+
+Note:
+> 从技术上来说，`@ConfigurationProperties`注解不会生效，除非先向Spring配置类添加`@EnableConfigurationProperties`注解。但通常无需这么做，因为Spring Boot自动配置后面的全部配置类都已经加上了`@EnableConfigurationProperties`注解。因此，除非你完全不使用自动配置（那怎么可能？），否则就无需显示地添加`@EnableConfigurationProperties`注解。
