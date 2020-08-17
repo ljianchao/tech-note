@@ -177,3 +177,15 @@ Spring Boot能从多种属性源获得属性，包括如下几处（列表按照
 
 Note:
 > 从技术上来说，`@ConfigurationProperties`注解不会生效，除非先向Spring配置类添加`@EnableConfigurationProperties`注解。但通常无需这么做，因为Spring Boot自动配置后面的全部配置类都已经加上了`@EnableConfigurationProperties`注解。因此，除非你完全不使用自动配置（那怎么可能？），否则就无需显示地添加`@EnableConfigurationProperties`注解。
+
+## 定制应用程序错误页面
+
+Spring Boot默认提供“白标”（whitelabel）错误页，这是自动配置的一部分。Spring Boot自动配置的默认错误处理器会查找名为`error`的视图，如果找不到就用默认的“白标”（whitelabel）错误视图。
+
+定制应用程序错误页面，就是创建创建一个自定义视图，让解析出的视图名为`error`。这一点归根到底取决于错误视图解析时的视图解析器。
+
+- 实现了Spring的View接口的Bean，其ID为`error`（由Spring的BeanNameViewResolver所解析）
+- 如果配置了Thymeleaf，则有名为`error.html`的Themeleaf模板
+- 如果配置了FreeMarker，则有名为`error.ftl`的FreeMarker模板
+- 如果配置了Velocity，则有名为`error.vm`的Velocity模板
+- 如果使用JSP，则有名为`error.jsp`的JSP模板
