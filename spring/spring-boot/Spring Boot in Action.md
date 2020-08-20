@@ -178,7 +178,7 @@ Spring Boot能从多种属性源获得属性，包括如下几处（列表按照
 Note:
 > 从技术上来说，`@ConfigurationProperties`注解不会生效，除非先向Spring配置类添加`@EnableConfigurationProperties`注解。但通常无需这么做，因为Spring Boot自动配置后面的全部配置类都已经加上了`@EnableConfigurationProperties`注解。因此，除非你完全不使用自动配置（那怎么可能？），否则就无需显示地添加`@EnableConfigurationProperties`注解。
 
-## 定制应用程序错误页面
+### 定制应用程序错误页面
 
 Spring Boot默认提供“白标”（whitelabel）错误页，这是自动配置的一部分。Spring Boot自动配置的默认错误处理器会查找名为`error`的视图，如果找不到就用默认的“白标”（whitelabel）错误视图。
 
@@ -189,3 +189,60 @@ Spring Boot默认提供“白标”（whitelabel）错误页，这是自动配�
 - 如果配置了FreeMarker，则有名为`error.ftl`的FreeMarker模板
 - 如果配置了Velocity，则有名为`error.vm`的Velocity模板
 - 如果使用JSP，则有名为`error.jsp`的JSP模板
+
+## 测试
+
+Spring的`SpringJUnit4ClassRunner`可以在基于`JUnit`的应用程序测试里**加载Spring应用程序上下文**。在测试Spring Boot应用程序时，Spring Boot除了拥有Spring的集成测试支持，还开启了**自动配置和Web服务器**，并提供了不少实用的测试辅助工具。
+
+### 集成测试自动配置
+
+基本的Spring集成测试
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)  // 开启了Spring集成测试支持
+@ContextConfiguration(classes = {AppConfiguration.class})  // 加载应用程序上下文
+public class DemoServiceTests {
+
+    @Autowired
+    private DemoService demoService;
+
+    @Test
+    public void testListAllBrand() {
+        Assert.assertNotNull(demoService.listAllBrand());
+    }
+}
+```
+
+Spring Boot集成测试
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)   // 开启了Spring集成测试支持
+@SpringBootTest(classes = {AppConfiguration.class})  // 加载应用程序上下文，加载外部属性和Spring Boot日志
+public class DemoServiceTests {
+
+    @Autowired
+    private DemoService demoService;
+
+    @Test
+    public void testListAllBrand() {
+        Assert.assertNotNull(demoService.listAllBrand());
+    }
+}
+```
+
+Spring Boot集成测试简化版本
+
+```java
+@RunWith(SpringRunner.class)   // 开启了Spring集成测试支持，SpringRunner是SpringJUnit4ClassRunner的子类
+@SpringBootTest  // 加载应用程序上下文，加载外部属性和Spring Boot日志
+public class DemoServiceTests {
+
+    @Autowired
+    private DemoService demoService;
+
+    @Test
+    public void testListAllBrand() {
+        Assert.assertNotNull(demoService.listAllBrand());
+    }
+}
+```
