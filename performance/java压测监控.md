@@ -140,7 +140,7 @@ JDK自带下列工具：
 - jps（JVM Process Status Tool），显示指定系统内所有的HotSpot虚拟机进程
 - jcmd，打印Java进程所涉及的基本类、线程和VM信息。
 - jconsole，提供JVM活动的图形化视图，包括线程的使用、类的使用和GC活动。
-- jhat（JVM Heap Dump Browser），读取内存堆转储，并有助于分析。这是事后使用的工具。
+- jhat（JVM Heap Analysis Tool），读取内存堆转储，并有助于分析。这是事后使用的工具。
 - jmap（Memory Map for Java），提供堆转储和其他JVM内存使用的信息。可以适用于脚本，但堆转储必须在事后分析工具中使用。
 - jinfo（Configuration Info for Java），查看JVM的系统属性，可以动态设置一些系统属性。可适用于脚本。
 - jstack（Stack Trace for Java），转储JVM进程的栈信息。可适用于脚本。
