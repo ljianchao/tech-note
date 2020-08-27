@@ -64,6 +64,36 @@ sysctl -p
 - Xmx不要超过机器内存的50%
 - 不要超过30GB - [a-heap-of-trouble](https://www.elastic.co/blog/a-heap-of-trouble)
 
+启动后JVM输出：
+
+```
+[elastic@localhost elasticsearch-7.8.0]$ jinfo -flags 8243
+Attaching to process ID 8243, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.131-b11
+Non-default VM flags: -XX:+AlwaysPreTouch -XX:CICompilerCount=2 -XX:CMSInitiatingOccupancyFraction=75 -XX:ErrorFile=null -XX:GCLogFileSize=67108864 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=null -XX:InitialHeapSize=134217728 -XX:MaxDirectMemorySize=67108864 -XX:MaxHeapSize=134217728 -XX:MaxNewSize=44695552 -XX:MaxTenuringThreshold=6 -XX:MinHeapDeltaBytes=196608 -XX:NewSize=44695552 -XX:NumberOfGCLogFiles=32 -XX:OldPLABSize=16 -XX:OldSize=89522176 -XX:-OmitStackTraceInFastThrow -XX:+PrintGC -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:-RequireSharedSpaces -XX:ThreadStackSize=1024 -XX:+UseCMSInitiatingOccupancyOnly -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseFastUnorderedTimeStamps -XX:+UseGCLogFileRotation -XX:+UseParNewGC -XX:-UseSharedSpaces 
+Command line:  -Xshare:auto -Des.networkaddress.cache.ttl=60 -Des.networkaddress.cache.negative.ttl=10 -XX:+AlwaysPreTouch -Xss1m -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djna.nosys=true -XX:-OmitStackTraceInFastThrow -Dio.netty.noUnsafe=true -Dio.netty.noKeySetOptimization=true -Dio.netty.recycler.maxCapacityPerThread=0 -Dio.netty.allocator.numDirectArenas=0 -Dlog4j.shutdownHookEnabled=false -Dlog4j2.disable.jmx=true -Djava.locale.providers=SPI,JRE -Xms128m -Xmx128m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -Djava.io.tmpdir=/tmp/elasticsearch-6984692651824079039 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=data -XX:ErrorFile=logs/hs_err_pid%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -Xloggc:logs/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=32 -XX:GCLogFileSize=64m -XX:MaxDirectMemorySize=67108864 -Des.path.home=/opt/soft/demo/elasticsearch-7.8.0 -Des.path.conf=/opt/soft/demo/elasticsearch-7.8.0/config -Des.distribution.flavor=default -Des.distribution.type=tar -Des.bundled_jdk=true
+```
+
+堆配置
+
+```
+-Xms128m -Xmx128m
+```
+
+垃圾回收器配置
+
+```
+-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly
+```
+
+打印输出配置
+
+```
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=data -XX:ErrorFile=logs/hs_err_pid%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -Xloggc:logs/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=32 -XX:GCLogFileSize=64m -XX:MaxDirectMemorySize=67108864
+```
+
 ### 修改配置文件
 
 修改`config/elasticsearch.yml`
@@ -528,10 +558,3 @@ GET yl_food/_validate/query?explain -d '
 ```
 sudo bin/elasticsearch-plugin list
 ```
-
-
-
-
-
-
-
