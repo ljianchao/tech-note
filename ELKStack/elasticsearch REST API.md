@@ -113,3 +113,137 @@ curl -XGET "http://localhost:9200/index1/_search" -H 'Content-Type:application/j
 }
 '
 ```
+
+### 衡量相关性
+
+搜索相关性（Information Retrieval）的两个基本概念Precision（精确率，查准率）和Recall（召回率，查全率）
+
+- Precision-尽可能返回较少的无关文档。获取到的**相关档数**占获取到的**总文档数（包括相关与不相关的）**的比例，用百分数表示。
+  - Precision = True Positive / 全部返回的结果（True and False Positives）
+- Recall-尽量返回较多的相关文档。获取到的**相关记录数**占数据库中**相关的记录总数**的比例，用百分数表示。
+  - Recall = True Positive / 所有应该返回的结果（True Positives + False Negtives）
+
+### URI Search详解
+
+```
+GET /movies/_search?q=2012&df=title&sort=year:desc&from=0&size=10&timeout=1s
+{
+  "profile": "true"
+}
+```
+
+- `q`指定查询语句，使用`Query String Syntax`
+- `df`指定默认字段，不指定时，会对所有字段进行查询
+- `sort`排序
+- `from`和`size`用于分页
+- `Profile`可以查看查询是如何被执行的
+
+#### Query String Syntax
+
+- 指定查询 v.s 泛查询
+  - q=title:2012 / q=2012
+- Term v.s Phrase
+  - Beautiful Mind 等效于 Beautiful OR Mind
+  - "Beautiful Mind"等效于 Beautiful AND Mind。Phrase查询，还要求前后顺序保持一致。
+- 分组与引号
+  - title:(Beautiful AND Mind)
+  - title:"Beautiful Mind"
+
+- 布尔操作
+  - `AND / OR / NOT` 或者 `&& / || / !`
+  - `+`表示must，`-`表示must_not
+
+- 范围查询
+  - 区间表示：`[]`闭区间，`{}`开区间
+- 算数符号
+  - year:>2010
+  - year:(>2010 && <=2018)
+  - year:(+>2010 +<=2018)
+
+- 通配符查询（通配符查询效率低，占用内存大，不建议使用。特别是放在最前面）
+  - `?`代表1个字符，`*`代表0或多个字符
+- 正则表达式查询
+  - title:[bt]oy
+- 模糊匹配查询与近似查询
+  - title:beautifl~1，可以查询包含beautiful的记录
+  - title:"lord rings"~2
+
+```
+// 指定默认字段查询
+GET /movies/_search?q=2012&df=title
+{
+  "profile": "true"
+}
+
+//指定字段
+GET /movies/_search?q=title:2012
+{
+  "profile": "true"
+}
+
+// 泛查询
+GET /movies/_search?q=2012
+{
+  "profile": "true"
+}
+
+// Phrase查询
+GET /movies/_search?q=title:"Beautiful Mind"
+{
+  "profile": "true"
+}
+
+// Mind为泛查询，需使用分组查询
+GET /movies/_search?q=title:Beautiful Mind
+{
+  "profile": "true"
+}
+
+// 分组查询
+GET /movies/_search?q=title:(Beautiful Mind)
+{
+  "profile": "true"
+}
+
+// AND操作
+GET /movies/_search?q=title:(Beautiful AND Mind)
+{
+  "profile": "true"
+}
+
+// NOT操作
+GET /movies/_search?q=title:(Beautiful NOT Mind)
+{
+  "profile": "true"
+}
+
+// 操作符，'%2B'表示'+'
+GET /movies/_search?q=title:(Beautiful %2BMind)
+{
+  "profile": "true"
+}
+
+// 范围查询，算数符号写法
+GET /movies/_search?q=year:>=1980
+{
+  "profile": "true"
+}
+
+// 通配符查询
+GET /movies/_search?q=title:b*
+{
+  "profile": "true"
+}
+
+// 模糊匹配&近似度匹配
+GET /movies/_search?q=title:beautifl~1
+{
+  "profile": "true"
+}
+
+// 模糊匹配&近似度匹配
+GET /movies/_search?q=title:"Lord Rings"~2
+{
+  "profile": "true"
+}
+```
