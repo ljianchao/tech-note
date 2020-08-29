@@ -94,25 +94,48 @@ Command line:  -Xshare:auto -Des.networkaddress.cache.ttl=60 -Des.networkaddress
 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=data -XX:ErrorFile=logs/hs_err_pid%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -Xloggc:logs/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=32 -XX:GCLogFileSize=64m -XX:MaxDirectMemorySize=67108864
 ```
 
+### 设置密码
+
+输入以下命令，为用户设置密码，用户包括：elastic, apm_system, kibana_system, logstash_system, beats_system, remote_monitoring_user
+
+```
+bin/elasticsearch-setup-passwords interactive
+```
+
+### 配置TLS和身份验证
+
+生成允许节点安全通信的证书
+
+```
+bin/elasticsearch-certutil cert -out config/ca/elastic-certificates.p12 -pass ""
+```
+
 ### 修改配置文件
 
 修改`config/elasticsearch.yml`
 
 ```
+# 集群名称
 cluster.name: my-es
+# 节点名称
 node.name: node-1
 cluster.initial_master_nodes: ["node-1"]
 
 network.host: 0.0.0.0
 http.port: 9200
 transport.port: 9300
-# 配置X-Pack
-xpack.license.self_generated.type: basic
+# x-head访问配置
 http.cors.enabled: true
 http.cors.allow-origin: "*"
-http.cors.allow-headers: Authorization
+http.cors.allow-headers: Authorization,X-Requested-With,Content-Length,Content-Type
+# 配置X-Pack，安全配置
+xpack.license.self_generated.type: basic
 xpack.security.enabled: true
+# 配置ssl和CA证书设置
 xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: ca/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: ca/elastic-certificates.p12
 ```
 
 ### 启动服务
@@ -127,14 +150,6 @@ xpack.security.transport.ssl.enabled: true
 
 ```
 ./bin/elasticsearch -d
-```
-
-### 设置密码
-
-输入以下命令，为用户设置密码，用户包括：elastic, apm_system, kibana_system, logstash_system, beats_system, remote_monitoring_user
-
-```
-bin/elasticsearch-setup-passwords interactive
 ```
 
 ## 安装插件
