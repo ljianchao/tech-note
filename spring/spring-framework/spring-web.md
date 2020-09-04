@@ -140,10 +140,11 @@ Spring提供了接口`javax.servlet.ServletContainerInitializer`的实现类`Spr
 
 ```java
 /**
- * 配置DispatcherServlet
+ * 初始化配置
  */
 public class CustomWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
+    // 指定ContextLoaderListener配置类
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return new Class[]{RootConfig.class};
@@ -155,9 +156,10 @@ public class CustomWebAppInitializer extends AbstractAnnotationConfigDispatcherS
         return new Class[]{WebConfig.class};
     }
 
+    // 将一个或多个路径映射到DispatcherServlet上
     @Override
     protected String[] getServletMappings() {
-        // 将DispatcherServlet映射到"/"
+        // "/"表示会处理进入应用的所有请求
         return new String[]{"/"};
     }
 }
