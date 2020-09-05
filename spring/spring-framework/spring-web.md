@@ -563,6 +563,56 @@ Spring提供了两种支持JSP视图的方式：
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
 ```
 
+## 使用Spring MVC创建REST API
+
+近几年来，以**信息为中心**的**表述性状态转移（Representational Stat Transfer，REST）**已成为替换传统SOAP Web服务的流行方案。SOAP一般关注行为和处理，而REST关注的是要处理的数据。
+
+### REST的基础知识
+
+REST与RPC几乎没有任何关系。RPC是面向服务的，并关注行为和动作；而REST是面向资源的，强调描述应用程序的事务和名词。应该尽量避免使用诸如REST服务、REST Web服务或类似的术语，这些术语会不恰当地强调行为。更应该强调REST面向资源的本质，并讨论RESTful资源。
+
+REST的构成部分：
+
+- 表述性（Representational）：REST资源实际上可以用各种形式来进行表述，包括XML、JSON（JavaScript Object Notation）甚至HTML-最适合资源使用者的任意形式。
+- 状态（State）：当使用REST的时候，我们更关注资源的状态而不是对资源采取的行为；
+- 转移（Transfer）：REST涉及到转移资源数据，它以某种表述性形式从一个应用转移到另一个应用。
+
+在REST中，资源通过URL进行识别和定位。
+
+REST中会有行为，它们是通过HTTP方法来进行定义。具体来讲，也就是GET、POST、PUT、DELETE、PATCH以及其他的HTTP方法构成了REST中的动作。这些HTTP方法通常会匹配为如下的CRUD动作：
+
+- Create：POS
+- Read：GET
+- Update：PUT
+- Delete：DELETE
+
+有时候，PUT可以用来创建新资源，POST可以用来更新资源。实际上，POST请求非幂等性（non-idempotent）的特点使其成为一个非常灵活的方法，对于无法适应其他HTTP方法语义的操作，它都能够胜任。
+
+### Spring对REST的支持
+
+Spring支持以下方式来创建REST资源：
+
+- 控制器可以处理所有的HTTP方法，包括四个主要的REST方法：GET、PUT、DELETE以及POST；
+- 借助`@PathVariable`注解，控制器能够处理参数化URL（将变量输入作为URL的一部分）；
+- 借助Spring的视图和视图解析器，资源能够以多种方式进行表述，包括将模型数据渲染为XML、JSON、Atom以及RSS的View实现；
+- 可以使用`ContentNegotiatingViewResolver`来选择最适合客户端的表述；
+- 借助`@ResponseBody`注解和各种`HttpMethodConverter`实现，能够替换基于视图的渲染方式；
+- 类似地，`@RequestBody`注解以及`HttpMethodConverter`实现可以将传入的HTTP参数转化为传入控制器处理方法的Java对象；
+- 借助`RestTemplate`，Spring应用能够方便地使用REST资源。
+
+### 创建REST端点
+
+表述是REST中很重要的一个方面。它是关于客户端和服务器端针对某一资源是如何通信的。任何给定的资源都几乎可以用任意的形式来进行表述（JSON、XML、PDF、Excel等）。资源没有变化-只是它的表述形式变化了。
+
+如果客户端时JavaScript的话，JSON会成为优胜者，因为在JavaScript中使用JSON数据根本就不需要编排和解排（marshaling/demarshaling）。
+
+控制器（Controller）本身通常并不关心资源如何表述。控制器以Java对象的方式来处理资源。控制器完成了它的工作之后，资源才会被转换成最适合客户端的形式。
+
+Spring提供了两种方法将资源的Java表述形式转换为发送给客户端的表述形式：
+
+- 内容协商（Content negotiation）：选择一个**视图**，它能够将模型渲染为呈现给客户端的表述形式；
+- 消息转换器（Message Conversion）：通过一个**消息转换器**将控制器所返回的对象转换为呈现给客户端的表述形式。
+
 ## 参考
 
 - Spring实战-第4版
