@@ -57,6 +57,20 @@ POM文件增加Spring MVC依赖
                 <artifactId>jstl</artifactId>
                 <version>1.2</version>
             </dependency>
+            <!-- HttpMessageConverter -->
+            <!-- json -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.11.2</version>
+            </dependency>
+            <!-- xml -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-xml</artifactId>
+                <version>2.11.2</version>
+            </dependency>
+
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -87,6 +101,17 @@ POM文件增加Spring MVC依赖
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
+        </dependency>
+        <!-- HttpMessageConverter -->
+        <!-- json -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- xml -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -600,7 +625,7 @@ Spring支持以下方式来创建REST资源：
 - 类似地，`@RequestBody`注解以及`HttpMethodConverter`实现可以将传入的HTTP参数转化为传入控制器处理方法的Java对象；
 - 借助`RestTemplate`，Spring应用能够方便地使用REST资源。
 
-### 创建REST端点
+### 创建REST端点（endpoint）
 
 表述是REST中很重要的一个方面。它是关于客户端和服务器端针对某一资源是如何通信的。任何给定的资源都几乎可以用任意的形式来进行表述（JSON、XML、PDF、Excel等）。资源没有变化-只是它的表述形式变化了。
 
@@ -612,6 +637,135 @@ Spring提供了两种方法将资源的Java表述形式转换为发送给客户�
 
 - 内容协商（Content negotiation）：选择一个**视图**，它能够将模型渲染为呈现给客户端的表述形式；
 - 消息转换器（Message Conversion）：通过一个**消息转换器**将控制器所返回的对象转换为呈现给客户端的表述形式。
+
+#### 协商资源表述
+
+#### 使用HTTP消息转换器
+
+使用消息转换功能时，`DispatchServlet`不再将模型数据传送到视图中。实际上，这里根本就没有模型，也没有视图，只有控制器产生的数据，以及消息转换器（message converter）转换数据之后产生的资源表述。
+
+Spring提供了多个HTTP消息转换器，用于实现资源表述与各种Java类型之间的互相转换，常用的有：
+
+- `BufferedImageHttpMessageConverter`，`BufferedImages`与图片二进制数据之间互相转换
+- `ByteArrayHttpMessageConverter`，读取/写入字节数组。从**所有媒体类型（*/*）**中读取，并以`application/octet-stream`格式写入
+- `FormHttpMessageConverter`，将`application/x-www-form-urlencoded`内容读入到`MultiValueMap<String, String>`中，也会将`MultiValueMap<String, String>`写入到`application/x-www-form-urlencoded`中或将`MultiValueMap<String, Object>`写入到`multipart/form-data`中
+- `MappingJacksonHttpMessageConverter`，在JSON和类型化的对象或非类型化的HashMap间互相读取和写入。**如果jackson-databind JSON 库在类路径下，将进行注册**。
+- `MappingJackson2HttpMessageConverter`，在JSON和类型化的对象或非类型化的HashMap间互相读取和写入。**如果jackson-databind 2 JSON 库在类路径下，将进行注册**。
+- `MappingJackson2XmlHttpMessageConverter`，在XML（`text/xml`或`application/xml`）和使用JAXB2或Jacksons注解的对象间互相读取和写入。**如果jackson-dataformat-xml库在类路径下，将进行注册**。
+- `Jaxb2RootElementHttpMessageConverter`，在XML（`text/xml`或`application/xml`）和使用JAXB2注解的对象间互相读取和写入。**如果JAXB V2 库在类路径下，将进行注册**。
+- `MarshallingHttpMessageConverter`，使用注入的编排器和解排器（marshaller和unmarshaller）来读入和写入XML。支持的编排器和解排器包括Castor、JAXB2、JIBX、XMLBeans以及Xstream。
+- `ResourceHttpMessageConverter`，读取或写入Resource。
+- `StringHttpMessageConverter`，将**所有媒体类型（*/*）**读取为String。将String写入为`Content-Type: text/plain`。
+
+为了支持消息转换，我们需要对Spring MVC的编程模型进行一些小调整。
+
+一、在响应体中返回资源状态
+
+为控制器方法添加`@ResponseBody`注解，`@ResponseBody`注解会告知Spring，我们要将返回的对象作为资源发送给客户端，并将其转换为客户端可接受的表述形式。更具体地讲，`DispatchServlet`将会考虑到**Accept**头部信息，并查找能够为客户端提供所需表述形式的消息转换器。
+
+Jackson默认会使用反射，但是如果你重构了Java类型，比如添加、移除或重命名属性，那么所产生的JSON也将会发生变化（如果客户端依赖这些属性的话，那客户端有可能会出错）。但是，我们可以在Java类型上使用**Jackson的映射注解（Jackson-Annotations）**，从而改变产生JSON的行为。
+
+```java
+    /**
+     * `@ResponseBody`注解会告知Spring，
+     * 我们要将返回的对象作为资源发送给客户端，
+     * 并将其转换为客户端可接受的表述形式
+     * 请求头：Accept: application/json
+     * 响应头：Content-Type: application/json
+     *
+     * `@RequestMapping`的`produces`属性表明
+     * 这个方法只处理预期输出为JSON的请求，
+     * 如果预期输出为XML的请求，不会被该方法处理
+     *
+     * @return
+     */
+    @RequestMapping(value = "/list", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody List<Student> list() {
+        return studentList;
+    }
+```
+
+二、在请求体中接收资源状态
+
+为控制器方法参数添加`@RequestBody`注解，告诉Spring查找一个消息转换器，将来自客户端的资源表述转换为Java对象（**该类定义必须保持有默认的构造函数**）。
+
+```java
+    /**
+     * `@RequestBody`注解，告诉Spring查找一个消息转换器，
+     * 将来自客户端的资源表述转换为Java对象
+     * （该类定义必须保持有默认的构造函数）。
+     *
+     * `@RequestBody`的`consumers`属性表明
+     * 这个方法只关注请求头部`Content-Type: application/json`
+     * 的请求
+     *
+     * @param student Student类定义必须保持默认的构造函数
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody
+    Student saveStudent(@RequestBody Student student) {
+        studentList.add(student);
+        return studentList.get(studentList.size() - 1);
+    }
+```
+
+三、为控制器默认设置消息转换
+
+如果在**控制器类**上使用`@RestController`注解来代替`@Controller`注解的话，Spring将会为该控制器的所有处理器方法应用消息转换功能（相当于替换每个方法上的`@ResponseBody`注解）。
+
+```java
+/**
+ * 如果在**控制器类**上使用`@RestController`
+ * 注解来代替`@Controller`注解的话，Spring
+ * 将会为该控制器的所有处理器方法应用消息转换功能
+ * （相当于替换每个方法上的`@ResponseBody`注解）
+ * 
+ */
+@RestController
+@RequestMapping("/api/student/default")
+public class StudentDefaultRestController {
+
+    private static List<Student> studentList;
+
+    static {
+        studentList = studentList = new ArrayList<Student>();
+        studentList.add(new Student(1, "Zhangsan", 3));
+        studentList.add(new Student(2, "Lisi", 4));
+        studentList.add(new Student(3, "Wangwu", 5));
+    }
+
+    /**
+     * `@RequestMapping`的`produces`属性表明
+     * 这个方法只处理预期输出为JSON的请求（Accept: application/json），
+     * 如果预期输出为XML的请求，不会被该方法处理
+     *
+     * @return
+     */
+    @RequestMapping(value = "/list", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public List<Student> list() {
+        return studentList;
+    }
+
+    /**
+     * `@RequestBody`注解，告诉Spring查找一个消息转换器，
+     * 将来自客户端的资源表述转换为Java对象
+     * （该类定义必须保持有默认的构造函数）。
+     *
+     * `@RequestBody`的`consumers`属性表明
+     * 这个方法只关注请求头部`Content-Type: application/json`
+     * 的请求
+     *
+     * @param student Student类定义必须保持默认的构造函数
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public Student saveStudent(@RequestBody Student student) {
+        studentList.add(student);
+        return studentList.get(studentList.size() - 1);
+    }
+}
+```
 
 ## 参考
 
