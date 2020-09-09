@@ -108,6 +108,11 @@ POM文件增加Spring MVC依赖
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <!-- Java校验API，JSR-303 -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
         <!-- xml -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -468,6 +473,89 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
 </html>
 ```
 
+四、校验表单
+
+Spring提供对Java校验API（Java Validation API）的支持。在Spring MVC中使用Java校验API，只需要保证在类路径下包含这个Java API的实现即可，比如`hibernate-validator`。
+
+POM文件增加依赖：
+
+```xml
+<!-- Java校验API，JSR-303 -->
+<dependency>
+    <groupId>org.hibernate.validator</groupId>
+    <artifactId>hibernate-validator</artifactId>
+    <version>6.1.5.Final</version>
+</dependency>
+```
+
+实体类属性增加注解：
+
+```java
+public class Student {
+
+    private int id;
+
+    @NotBlank
+    private String name;
+
+    private int age;
+
+    public Student() {}
+
+    public Student(int id, String name, int age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+```
+
+控制器参数增加校验注解`@Valid`，启用校验功能：
+
+```java
+    /**
+     * 接收请求的输入
+     * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
+     *  
+     * @param student
+     * @return
+     */
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public String processRegisterForm(@Valid Student student, Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/registerForm";  // 如果校验出错，重新返回表单
+        }
+        studentList().add(student);
+        // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
+        return "redirect: /student/" + student.getId();
+    }
+```
 
 #### 渲染Web视图
 
