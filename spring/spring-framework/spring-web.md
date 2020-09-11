@@ -500,6 +500,9 @@ public class Student {
 
     private int age;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date birthdayTime;
+
     public Student() {}
 
     public Student(int id, String name, int age) {
@@ -753,7 +756,19 @@ Spring提供了多个HTTP消息转换器，用于实现资源表述与各种Java
 
 Jackson默认会使用反射，但是如果你重构了Java类型，比如添加、移除或重命名属性，那么所产生的JSON也将会发生变化（如果客户端依赖这些属性的话，那客户端有可能会出错）。但是，我们可以在Java类型上使用**Jackson的映射注解（Jackson-Annotations）**，从而改变产生JSON的行为。
 
+Note
+> 使用Jackson进行JSON转换时，针对`Date`类型的字段，默认会转换成`Greenwich Time`（格林威治时间），比北京时间（东八区）少八个小时，因此需要添加注解进行处理，使其显示为北京时间
+
 ```java
+    // 实体类
+
+    public class Student {
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+        private Date birthdayTime;
+    }
+
+    // 控制器方法
+
     /**
      * `@ResponseBody`注解会告知Spring，
      * 我们要将返回的对象作为资源发送给客户端，
