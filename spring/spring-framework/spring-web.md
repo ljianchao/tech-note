@@ -18,7 +18,7 @@ Spring MVC请求的处理流程：`请求 -> DispatchServlet -> 处理器映射 
 # 创建java项目
 mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-mvc -Dpackage=com.demo.spring.mvc -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false -DarchetypeCatalog=local
 
-# 创建web项目，包含由web-app目录
+# 创建web项目，包含有web-app目录
 mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-mvc -Dpackage=com.demo.spring.mvc -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false -DarchetypeCatalog=local
 ```
 
@@ -70,7 +70,12 @@ POM文件增加Spring MVC依赖
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>2.11.2</version>
             </dependency>
-
+            <!-- Java校验API，JSR-303 -->
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>6.1.5.Final</version>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -108,15 +113,15 @@ POM文件增加Spring MVC依赖
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-        <!-- Java校验API，JSR-303 -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
         <!-- xml -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
+        <!-- Java校验API，JSR-303 -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -140,6 +145,7 @@ POM文件增加Spring MVC依赖
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <!-- 配置JDK8，避免IDEA的lambda表达式报红 -->
                     <source>8</source>
                     <target>8</target>
                     <encoding>UTF-8</encoding>
@@ -166,7 +172,7 @@ POM文件增加Spring MVC依赖
 
 在Servlet3.0环境中，容器会在类路径中查找实现`javax.servlet.ServletContainerInitializer`接口的类，如果能发现的话，就会用它来配置Servlet容器。
 
-Spring提供了接口`javax.servlet.ServletContainerInitializer`的实现类`SpringServletContainerInitializer`，在`onStartup`方法中会查找实现接口`WebApplicationInitializer`的类并将配置的任务交给它们来完成。Spring3.2引入了`WebApplicationInitializer`的基础实现类`AbstractAnnotationConfigDispatcherServletInitializer`。我看可以对`AbstractAnnotationConfigDispatcherServletInitializer`基础实现类进行扩展，用来配置Servlet上下文。
+Spring提供了接口`javax.servlet.ServletContainerInitializer`的实现类`SpringServletContainerInitializer`，在`onStartup`方法中会查找实现接口`WebApplicationInitializer`的类并将配置的任务交给它们来完成。Spring3.2引入了`WebApplicationInitializer`的基础实现类`AbstractAnnotationConfigDispatcherServletInitializer`。我们可以对`AbstractAnnotationConfigDispatcherServletInitializer`基础实现类进行扩展，用来配置Servlet上下文。
 
 ```java
 /**
@@ -236,7 +242,14 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         return resolver;
     }
 
-    // 配置静态资源的处理
+    /**
+     * 配置静态资源的处理
+     *
+     * 配置一个处理程序，通过转发到Servlet容器的“默认”Servlet来委托未处理的请求。
+     * 一个常见的用例是当DispatcherServlet映射到“/”从而覆盖Servlet容器对静态资源的默认处理。
+     *
+     * @param configurer
+     */
     @Override
     public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
         configurer.enable();
@@ -376,9 +389,9 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
 - 路径变量（Path Variable）
 
 ```java
-/**
+    /**
      * 接收请求的输入
-     * 处理查询参数：/student/list3?count=2
+     * 处理查询参数：/student/list4?count=2
      *
      * @param count 请求参数，count参数为null，使用defaultValue的值
      * @return
@@ -681,11 +694,11 @@ Spring提供了两种支持JSP视图的方式：
 
 ## 使用Spring MVC创建REST API
 
-近几年来，以**信息为中心**的**表述性状态转移（Representational Stat Transfer，REST）**已成为替换传统SOAP Web服务的流行方案。SOAP一般关注行为和处理，而REST关注的是要处理的数据。
+近几年来，以**信息为中心**的表述性状态转移（Representational Stat Transfer，REST）已成为替换传统SOAP Web服务的流行方案。SOAP一般关注行为和处理，而REST关注的是要处理的数据。
 
 ### REST的基础知识
 
-REST与RPC几乎没有任何关系。RPC是面向服务的，并关注行为和动作；而REST是面向资源的，强调描述应用程序的事务和名词。应该尽量避免使用诸如REST服务、REST Web服务或类似的术语，这些术语会不恰当地强调行为。更应该强调REST面向资源的本质，并讨论RESTful资源。
+REST与RPC几乎没有任何关系。RPC是面向服务的，并关注行为和动作；而REST是面向资源的，强调描述应用程序的事物和名词。应该尽量避免使用诸如REST服务、REST Web服务或类似的术语，这些术语会不恰当地强调行为。更应该强调REST面向资源的本质，并讨论RESTful资源。
 
 REST的构成部分：
 
@@ -693,11 +706,11 @@ REST的构成部分：
 - 状态（State）：当使用REST的时候，我们更关注资源的状态而不是对资源采取的行为；
 - 转移（Transfer）：REST涉及到转移资源数据，它以某种表述性形式从一个应用转移到另一个应用。
 
-在REST中，资源通过URL进行识别和定位。
+在REST中，资源通过**URL进行识别和定位**。
 
 REST中会有行为，它们是通过HTTP方法来进行定义。具体来讲，也就是GET、POST、PUT、DELETE、PATCH以及其他的HTTP方法构成了REST中的动作。这些HTTP方法通常会匹配为如下的CRUD动作：
 
-- Create：POS
+- Create：POST
 - Read：GET
 - Update：PUT
 - Delete：DELETE
@@ -720,7 +733,7 @@ Spring支持以下方式来创建REST资源：
 
 表述是REST中很重要的一个方面。它是关于客户端和服务器端针对某一资源是如何通信的。任何给定的资源都几乎可以用任意的形式来进行表述（JSON、XML、PDF、Excel等）。资源没有变化-只是它的表述形式变化了。
 
-如果客户端时JavaScript的话，JSON会成为优胜者，因为在JavaScript中使用JSON数据根本就不需要编排和解排（marshaling/demarshaling）。
+如果客户端是JavaScript的话，JSON会成为优胜者，因为在JavaScript中使用JSON数据根本就不需要编排和解排（marshaling/demarshaling）。
 
 控制器（Controller）本身通常并不关心资源如何表述。控制器以Java对象的方式来处理资源。控制器完成了它的工作之后，资源才会被转换成最适合客户端的形式。
 
@@ -738,7 +751,7 @@ Spring提供了两种方法将资源的Java表述形式转换为发送给客户�
 Spring提供了多个HTTP消息转换器，用于实现资源表述与各种Java类型之间的互相转换，常用的有：
 
 - `BufferedImageHttpMessageConverter`，`BufferedImages`与图片二进制数据之间互相转换
-- `ByteArrayHttpMessageConverter`，读取/写入字节数组。从**所有媒体类型（*/*）**中读取，并以`application/octet-stream`格式写入
+- `ByteArrayHttpMessageConverter`，读取/写入字节数组。从所有媒体类型（`*/*`）中读取，并以`application/octet-stream`格式写入
 - `FormHttpMessageConverter`，将`application/x-www-form-urlencoded`内容读入到`MultiValueMap<String, String>`中，也会将`MultiValueMap<String, String>`写入到`application/x-www-form-urlencoded`中或将`MultiValueMap<String, Object>`写入到`multipart/form-data`中
 - `MappingJacksonHttpMessageConverter`，在JSON和类型化的对象或非类型化的HashMap间互相读取和写入。**如果jackson-databind JSON 库在类路径下，将进行注册**。
 - `MappingJackson2HttpMessageConverter`，在JSON和类型化的对象或非类型化的HashMap间互相读取和写入。**如果jackson-databind 2 JSON 库在类路径下，将进行注册**。
@@ -746,7 +759,7 @@ Spring提供了多个HTTP消息转换器，用于实现资源表述与各种Java
 - `Jaxb2RootElementHttpMessageConverter`，在XML（`text/xml`或`application/xml`）和使用JAXB2注解的对象间互相读取和写入。**如果JAXB V2 库在类路径下，将进行注册**。
 - `MarshallingHttpMessageConverter`，使用注入的编排器和解排器（marshaller和unmarshaller）来读入和写入XML。支持的编排器和解排器包括Castor、JAXB2、JIBX、XMLBeans以及Xstream。
 - `ResourceHttpMessageConverter`，读取或写入Resource。
-- `StringHttpMessageConverter`，将**所有媒体类型（*/*）**读取为String。将String写入为`Content-Type: text/plain`。
+- `StringHttpMessageConverter`，将所有媒体类型（`*/*`）读取为String。将String写入为`Content-Type: text/plain`。
 
 为了支持消息转换，我们需要对Spring MVC的编程模型进行一些小调整。
 
