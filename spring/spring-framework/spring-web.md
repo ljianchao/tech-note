@@ -177,6 +177,8 @@ Spring提供了接口`javax.servlet.ServletContainerInitializer`的实现类`Spr
 ```java
 /**
  * 初始化配置
+ *
+ * AbstractAnnotationConfigDispatcherServletInitializer会创建DispatcherServlet和ContextLoaderListener
  */
 public class CustomWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
@@ -197,6 +199,30 @@ public class CustomWebAppInitializer extends AbstractAnnotationConfigDispatcherS
     protected String[] getServletMappings() {
         // "/"表示会处理进入应用的所有请求
         return new String[]{"/"};
+    }
+
+    // 注册Filter并将其映射到DispatcherServlet
+    @Override
+    protected Filter[] getServletFilters() {
+        // 设置字符集过滤器
+        CharacterEncodingFilter filter = new CharacterEncodingFilter();
+        filter.setEncoding("UTF-8");
+        filter.setForceRequestEncoding(false);
+        filter.setForceResponseEncoding(true);
+        return new Filter[]{filter};
+    }
+
+    /**
+     * AbstractAnnotationConfigDispatcherServletInitializer将DispatcherServlet
+     * 注册到Servlet容器后，就会调用customizeRegistration()方法，并将Servlet注册
+     * 后得到的`ServletRegistration.Dynamic`传递进来
+     */
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        // 设置load-on-startup优先级
+        registration.setLoadOnStartup(1);
+        // 配置Servlet3.0对multipart的支持
+        registration.setMultipartConfig(new MultipartConfigElement("/tmp/demo/uploads"));
     }
 }
 ```
@@ -690,6 +716,199 @@ Spring提供了两种支持JSP视图的方式：
 
 ```jsp
 <%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+```
+
+## Spring MVC的高级技术
+
+### Spring MVC配置的替代方案
+
+#### 自定义DispatchServlet配置
+
+`AbstractAnnotationConfigDispatcherServletInitializer`将`DispatcherServlet`注册到Servlet容器后，就会调用`customizeRegistration()`方法，并将Servlet注册后得到的`ServletRegistration.Dynamic`传递进来。通过重载`customizeRegistration()`方法，我们可以对`DispatcherServlet`进行额外的配置。
+
+借助`customizeRegistration()`方法中的`ServletRegistration.Dynamic`，我们能够完成多项任务，包括通过调用`setLoadOnStartup()`设置`load-on-startup`优先级，通过`setInitParameter()`设置初始化参数，通过调用`setMultipartConfig()`配置Servlet3.0对multipart的支持。
+
+```java
+    /**
+     * AbstractAnnotationConfigDispatcherServletInitializer将DispatcherServlet
+     * 注册到Servlet容器后，就会调用customizeRegistration()方法，并将Servlet注册
+     * 后得到的`ServletRegistration.Dynamic`传递进来
+     */
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        // 设置load-on-startup优先级
+        registration.setLoadOnStartup(1);
+        // 配置Servlet3.0对multipart的支持
+        registration.setMultipartConfig(new MultipartConfigElement("/tmp/demo/uploads"));
+    }
+```
+
+#### 添加其他的Servlet和Filter
+
+基于Java的初始化器（Initializer）使得我们可以定义**任意数量**的初始化器类。因此，如果我们想往Web容器中注册其他组件的话，只需要创建一个新的初始化器就可以了。最简单的方式就是实现Spring的`WebApplicationInitializer`。
+
+```java
+/**
+ * 定义Servlet，不是DispatcherServlet
+ */
+public class MyServletWebAppInitializer implements WebApplicationInitializer {
+
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        // 注册Servlet
+        ServletRegistration.Dynamic registration = servletContext.addServlet("myServlet", MyServlet.class);
+        // 设置load-on-startup优先级，否则不会调用Servlet.init()方法
+        registration.setLoadOnStartup(2);
+        // 映射Servlet
+        registration.addMapping("/custom/**");
+
+        // 注册Filter
+        FilterRegistration.Dynamic filterRegistration = servletContext.addFilter("myFilter", MyFilter.class);
+        // 添加Filter的映射路径
+        filterRegistration.addMappingForUrlPatterns(null, false, "/custom/**");
+    }
+}
+```
+
+#### 在web.xml中声明DispatcherServlet
+
+使用基于XML配置文件的web.xml基本内容：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+
+    <display-name>demo-spring-mvc</display-name>
+    <description>demo-spring-mvc</description>
+
+    <!-- 设置根上下文配置文件位置 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            /WEB-INF/spring/root-context.xml, /WEB-INF/spring/dataAccessContext.xml
+        </param-value>
+    </context-param>
+    <!-- 注册ContextLoaderListener -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <!-- 注册DispatcherServlet -->
+    <servlet>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>/WEB-INF/spring/appServlet/controller.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <!-- 将DispatcherServlet映射到"/" -->
+    <servlet-mapping>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <!-- 注册Filter -->
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>
+            org.springframework.web.filter.CharacterEncodingFilter
+        </filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceRequestEncoding</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+</web-app>
+```
+
+使用基于Java配置的web.xml基本内容：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+
+    <display-name>demo-spring-mvc</display-name>
+    <description>demo-spring-mvc</description>
+
+    <!-- 指定根配置类 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>com.demo.spring.mvc.config.RootConfig</param-value>
+    </context-param>
+
+    <!-- 使用Java配置 -->
+    <context-param>
+        <param-name>contextClass</param-name>
+        <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+    </context-param>
+
+    <!-- 注册ContextLoaderListener -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <!-- 注册DispatcherServlet -->
+    <servlet>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextClass</param-name>
+            <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+        </init-param>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>com.demo.spring.mvc.config.WebConfig</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <!-- 将DispatcherServlet映射到"/" -->
+    <servlet-mapping>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <!-- 注册Filter -->
+    <filter>
+        <filter-name>encodingFilter</filter-name>
+        <filter-class>
+            org.springframework.web.filter.CharacterEncodingFilter
+        </filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceRequestEncoding</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceResponseEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+</web-app>
+
 ```
 
 ## 使用Spring MVC创建REST API
