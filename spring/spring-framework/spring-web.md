@@ -295,6 +295,87 @@ public class RootConfig {
 
 #### 编写控制器
 
+创建学生相关的Service和实现类：
+
+```java
+public interface StudentService {
+
+    /**
+     * 获取所有学生列表
+     * @return
+     */
+    List<Student> all();
+
+    /**
+     * 获取前count名学生
+     * @param count
+     * @return
+     */
+    List<Student> top(int count);
+
+    /**
+     * 根据id查找学生信息
+     * @param id
+     * @return
+     */
+    Student findOne(int id);
+
+    /**
+     * 新增学生
+     * @param student
+     * @return
+     */
+    Student save(Student student) throws DuplicateStudentException;
+}
+
+@Service
+public class StudentServiceImpl implements StudentService {
+
+    private static List<Student> studentList;
+
+    static {
+        studentList = new ArrayList<>();
+        studentList.add(new Student(1, "Zhangsan", 3));
+        studentList.add(new Student(2, "Lisi", 4));
+        studentList.add(new Student(3, "Wangwu", 5));
+    }
+
+    @Override
+    public List<Student> all() {
+        return studentList;
+    }
+
+    @Override
+    public List<Student> top(int count) {
+        return studentList.subList(0, count);
+    }
+
+    @Override
+    public Student findOne(int id) {
+        List<Student> list = studentList.stream()
+                .filter(student -> (student.getId() == id))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(list)) {
+            return list.get(0);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Student save(Student student) throws DuplicateStudentException {
+        // 判断id释放重复
+        Student stu = this.findOne(student.getId());
+        if (stu != null) {
+            throw new DuplicateStudentException();
+        }
+
+        studentList.add(student);
+        return student;
+    }
+}
+```
+
 一、最基本的控制器
 
 ```java
@@ -329,14 +410,8 @@ public class HomeController {
 @RequestMapping("/student")
 public class StudentController {
 
-    private static List<Student> studentList;
-
-    static {
-        studentList = studentList = new ArrayList<Student>();
-        studentList.add(new Student(1, "Zhangsan", 3));
-        studentList.add(new Student(2, "Lisi", 4));
-        studentList.add(new Student(3, "Wangwu", 5));
-    }
+    @Autowired
+    private StudentService studentService;
 
     /**
      * 传递模型数据到视图
@@ -346,7 +421,7 @@ public class StudentController {
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public String list(Model model) {
         // 设置模型数据
-        model.addAttribute("studentList", studentList);
+        model.addAttribute("studentList", studentService.all());
         // 返回逻辑视图名，逻辑视图名中包含斜线时，这个斜线也会带到资源的路径名中
         // 查找"WEB-INF/views/student/list.jsp"
         return "student/list";
@@ -359,7 +434,7 @@ public class StudentController {
      */
     @RequestMapping(value = "/list2", method = RequestMethod.GET)
     public String listWithMap(Map model) {
-        model.put("studentList", studentList);
+        model.put("studentList", studentService.all());
         // 返回逻辑视图名，逻辑视图名中包含斜线时，这个斜线也会带到资源的路径名中
         // 查找"WEB-INF/views/student/list.jsp"
         return "student/list";
@@ -374,7 +449,108 @@ public class StudentController {
      */
     @RequestMapping(value = "/list3", method = RequestMethod.GET)
     public List<Student> studentList() {
-        return studentList;
+        return studentService.all();
+    }
+
+    /**
+     * 接收请求的输入
+     * 处理查询参数：/student/list4?count=2
+     *
+     * @param count 请求参数，count参数为null，使用defaultValue的值
+     * @return
+     */
+    @RequestMapping(value = "/list4", method = RequestMethod.GET)
+    public List<Student> topList(@RequestParam(value = "count", defaultValue = "1") int count) {
+        return studentService.top(count);
+    }
+
+
+    /**
+     * 接收请求的输入
+     * 处理路径变量：/student/2
+     *
+     * @param id 路径变量
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public String student(@PathVariable("id") int id, Map model) {
+        Student student = studentService.findOne(id);
+        if (student == null) {
+            throw new StudentNotFoundException();
+        }
+
+        model.put("student", student);
+
+        // 返回逻辑视图名
+        return "student/student";
+    }
+
+    @RequestMapping(value = "/register", method = RequestMethod.GET)
+    public String showRegisterForm() {
+        return "student/registerForm";
+    }
+
+    @RequestMapping(value = "/regpic", method = RequestMethod.GET)
+    public String showRegisterPicForm() {
+        return "student/regpic";
+    }
+
+    /**
+     * 接收请求的输入
+     * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
+     *
+     * @param student
+     * @return
+     */
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public String processRegisterForm(@Valid Student student,
+                                      @RequestPart("profilePicture") byte[] profilePicture,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/registerForm";  // 如果校验出错，重新返回表单
+        }
+
+        studentService.save(student);
+        // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
+        return "redirect: /student/" + student.getId();
+    }
+
+    /**
+     * 接收请求的输入
+     * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
+     *
+     * @param student
+     * @return
+     */
+    @RequestMapping(value = "/regpic", method = RequestMethod.POST)
+    public String processRegisterFormWithPic(@Valid Student student,
+                                      @RequestPart("profilePicture") MultipartFile profilePicture,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/regpic";  // 如果校验出错，重新返回表单
+        }
+        studentService.save(student);
+        // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
+        return "redirect: /student/" + student.getId();
+    }
+
+
+    /**
+     * 委托给该方法处理抛出的DuplicateStudentException异常
+     *
+     * 该方法可以处理当前Controller-控制器中所有方法抛出的
+     * DuplicateStudentException异常
+     *
+     * @return
+     */
+    @ExceptionHandler(DuplicateStudentException.class)
+    public String handleDuplicateStudent() {
+        return "error/duplicate";
     }
 }
 ```
@@ -415,7 +591,7 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
 - 路径变量（Path Variable）
 
 ```java
-    /**
+/**
      * 接收请求的输入
      * 处理查询参数：/student/list4?count=2
      *
@@ -424,7 +600,7 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
      */
     @RequestMapping(value = "/list4", method = RequestMethod.GET)
     public List<Student> topList(@RequestParam(value = "count", defaultValue = "1") int count) {
-        return studentList.subList(0, count);
+        return studentService.top(count);
     }
 
 
@@ -438,8 +614,12 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public String student(@PathVariable("id") int id, Map model) {
-        List<Student> list = studentList.stream().filter(student -> (student.getId() == id)).collect(Collectors.toList());
-        model.put("student", list.get(0));
+        Student student = studentService.findOne(id);
+        if (student == null) {
+            throw new StudentNotFoundException();
+        }
+
+        model.put("student", student);
 
         // 返回逻辑视图名
         return "student/student";
@@ -453,16 +633,26 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
     /**
      * 接收请求的输入
      * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
      *
      * @param student
      * @return
      */
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public String processRegisterForm(Student student) {
-        studentList().add(student);
+    public String processRegisterForm(@Valid Student student,
+                                      @RequestPart("profilePicture") byte[] profilePicture,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/registerForm";  // 如果校验出错，重新返回表单
+        }
+
+        studentService.save(student);
+
         // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
         return "redirect: /student/" + student.getId();
     }
+
 ```
 
 视图`student.jsp`内容：
@@ -502,10 +692,11 @@ Spring MVC允许以多种方式将客户端中的数据传送到控制器的处�
 </head>
 <body>
 <h1>Register</h1>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         Id: <input type="text" name="id" /><br/>
         Name: <input type="text" name="name" /><br/>
         Age: <input type="text" name="age" /><br/>
+        Pic: <input type="file" name="profilePicture" accept="image/jpeg, image/png, image/gif"><br/>
         <input type="submit" value="Register" />
     </form>
 </body>
@@ -584,16 +775,20 @@ public class Student {
      * 处理表单参数
      * `@Valid`注解开启校验
      *  Errors参数要紧跟在带有@Valid注解的参数后面
-     *  
+     *
      * @param student
      * @return
      */
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public String processRegisterForm(@Valid Student student, Errors errors) {
+    public String processRegisterForm(@Valid Student student,
+                                      @RequestPart("profilePicture") byte[] profilePicture,
+                                      Errors errors) {
         if (errors.hasErrors()) {
             return "student/registerForm";  // 如果校验出错，重新返回表单
         }
-        studentList().add(student);
+
+        studentService.save(student);
+
         // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
         return "redirect: /student/" + student.getId();
     }
@@ -675,13 +870,18 @@ Spring提供了两种支持JSP视图的方式：
 - InternalResourceViewResolver会将视图名解析为JSP文件。另外，如果在你的JSP页面中使用了JSP标准标签库（JavaServer Pages Standard Tag Library，JSTL）的话，InternalResourceViewResolver能够将视图名解析为`JstlView`形式的JSP文件，从而将JSTL本地化和资源bundle变量暴露给JSTL的格式化（formatting）和信息（message）标签。
 - Spring提供了两个JSP标签库，一个用于表单到模型的绑定，另一个提供了通用的工具类特性。
 
-逻辑视图名中包含斜线时，这个斜线也会带到资源的路径名中
+逻辑视图名中包含斜线时，这个斜线也会带到资源的路径名中：
 
 ```java
+    /**
+     * 传递模型数据到视图
+     * @param model
+     * @return
+     */
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public String list(Model model) {
         // 设置模型数据
-        model.addAttribute(buildStudentList());
+        model.addAttribute("studentList", studentService.all());
         // 返回逻辑视图名，逻辑视图名中包含斜线时，这个斜线也会带到资源的路径名中
         // 查找"WEB-INF/views/student/list.jsp"
         return "student/list";
@@ -739,7 +939,10 @@ Spring提供了两种支持JSP视图的方式：
         // 设置load-on-startup优先级
         registration.setLoadOnStartup(1);
         // 配置Servlet3.0对multipart的支持
-        registration.setMultipartConfig(new MultipartConfigElement("/tmp/demo/uploads"));
+        // 设置上传文件的临时写入目录，限制上传文件的大小不超过2MB，整个请求不超过4MB
+        // 设置fileSizeThreshold为0，即所有上传的文件都会写入到磁盘上
+        registration.setMultipartConfig(new MultipartConfigElement("D:\\tmp\\demo\\uploads",
+                2097152, 4194304, 0));
     }
 ```
 
@@ -909,6 +1112,327 @@ public class MyServletWebAppInitializer implements WebApplicationInitializer {
     </filter-mapping>
 </web-app>
 
+```
+
+### 处理multipart形式的数据
+
+一般表单提交所形成的请求结果是很简单的，就是以`&`符号分割的多个`name-value`对，对于典型的基于文本的表单提交也足够满足需求，但是对于传送二进制数据，如上传图片，就显得力不从心了。与之不同的是，`multipart`格式的数据会将一个表单拆分为多个部分（part），每个部分对应一个输入域。在一般的表单输入域中，它所对应的部分会放置文本数据，但是如果上传文件的话，它所对应的部分可以是二进制。
+
+#### 配置multipart解析器
+
+`DispatcherServlet`并没有实现任何解析multipart请求数据的功能。它将该任务委托给了Spring中`MultipartResolver`策略接口来实现，通过这个实现类来解析multipart请求中的内容。
+
+```java
+public interface MultipartResolver {
+
+	boolean isMultipart(HttpServletRequest request);
+
+	MultipartHttpServletRequest resolveMultipart(HttpServletRequest request) throws MultipartException;
+
+	void cleanupMultipart(MultipartHttpServletRequest request);
+
+}
+```
+
+从Spring3.1开始，Spring内置了两个`MultipartResolver`的实现供我们选择：
+
+- CommonsMultipartResolver：使用Jakarta Commons FileUpload解析multipart请求；
+- StandardServletMultipartResolver：依赖于Servlet3.0对multipart请求的支持（始于Spring3.1）。
+
+一般来讲，在这两者之间，`StandardServletMultipartResolver`可能会是优先的方能。它使用Servlet所提供的功能支持，并不需要依赖任何其他的项目。如果我们需要将应用部署到Servlet3.0之前的容器中，或者没有使用Spring3.1或者更高的版本，那么可能就需要`CommonsMultipartResolver`。
+
+一、使用Servlet3.0解析multipart请求
+
+在Spring应用上下文中，将`StandardServletMultipartResolver`声明为bean：
+
+```java
+    /**
+     * 配置StandardServletMultipartResolver解析multipart请求
+     * 
+     * @return
+     */
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
+```
+
+要配置`StandardServletMultipartResolver`的限制条件，要在Servlet中指定multipart的配置。一般的配置内容包括：
+
+- 指定文件系统中的一个绝对目录，上传文件将会临时写入该目录中；
+- 上传文件的最大容量（以字节为单位）。默认是没有限制的。
+- 整个multipart请求的最大容量（以字节为单位），不会关心有多少个part以及每个part的大小。默认是没有限制的。
+- 在上传的过程中，如果文件大小达到了一个指定最大容量（以字节为单位），将会写入到临时文件路径中。默认值为0，也就是所有上传的文件都会写入到磁盘上。
+
+采用继承`AbstractAnnotationConfigDispatcherServletInitializer`的Servlet初始化类的方式来配置`DispatcherServlet`，指定multipart的配置需要重载`customizeRegistration()`方法：
+
+```java
+    /**
+     * AbstractAnnotationConfigDispatcherServletInitializer将DispatcherServlet
+     * 注册到Servlet容器后，就会调用customizeRegistration()方法，并将Servlet注册
+     * 后得到的`ServletRegistration.Dynamic`传递进来
+     */
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        // 设置load-on-startup优先级
+        registration.setLoadOnStartup(1);
+        // 配置Servlet3.0对multipart的支持
+        // 设置上传文件的临时写入目录，限制上传文件的大小不超过2MB，整个请求不超过4MB
+        // 设置fileSizeThreshold为0，即所有上传的文件都会写入到磁盘上
+        registration.setMultipartConfig(new MultipartConfigElement("/tmp/demo/uploads",
+                2097152, 4194304, 0));
+    }
+```
+
+web.xml指定multipart的配置：
+
+```xml
+    <!-- 注册DispatcherServlet -->
+    <servlet>
+        <servlet-name>dispatcherServlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextClass</param-name>
+            <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+        </init-param>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>com.demo.spring.mvc.config.WebConfig</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+        <multipart-config>
+            <location>/tmp/demo/uploads</location>
+            <max-file-sieze>2097152</max-file-sieze>
+            <max-request-size>4194304</max-request-size>
+        </multipart-config>
+    </servlet>
+```
+
+二、处理multipart请求
+
+处理multipart请求，需要编写控制器方法来接收上传的文件，最常见的方式是在某个控制器方法**参数**上添加`@RequestPart`注解。
+
+使用`byte[]`参数控制器方法：
+
+```java
+    /**
+     * 接收请求的输入
+     * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
+     *
+     * @param student
+     * @return
+     */
+    @RequestMapping(value = "/register", method = RequestMethod.POST)
+    public String processRegisterForm(@Valid Student student,
+                                      @RequestPart("profilePicture") byte[] profilePicture,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/registerForm";  // 如果校验出错，重新返回表单
+        }
+
+        studentService.save(student);
+        // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
+        return "redirect: /student/" + student.getId();
+    }
+```
+
+使用上传文件的原始byte比较简单但是功能有限。因此，Spring提供了`MultipartFile`接口，它为处理multipart数据提供了内容更为丰富的对象。
+
+`MultipartFile`接口概况：
+
+```java
+public interface MultipartFile extends InputStreamSource {
+
+	String getName();
+
+	@Nullable
+	String getOriginalFilename();
+
+	@Nullable
+	String getContentType();
+
+	boolean isEmpty();
+
+	long getSize();
+
+	byte[] getBytes() throws IOException;
+
+	@Override
+	InputStream getInputStream() throws IOException;
+
+	default Resource getResource() {
+		return new MultipartFileResource(this);
+	}
+
+	void transferTo(File dest) throws IOException, IllegalStateException;
+
+	default void transferTo(Path dest) throws IOException, IllegalStateException {
+		FileCopyUtils.copy(getInputStream(), Files.newOutputStream(dest));
+	}
+
+}
+```
+
+使用`MultipartFile`参数控制器方法：
+
+```java
+    /**
+     * 接收请求的输入
+     * 处理表单参数
+     * `@Valid`注解开启校验
+     *  Errors参数要紧跟在带有@Valid注解的参数后面
+     *
+     * @param student
+     * @return
+     */
+    @RequestMapping(value = "/regpic", method = RequestMethod.POST)
+    public String processRegisterFormWithPic(@Valid Student student,
+                                      @RequestPart("profilePicture") MultipartFile profilePicture,
+                                      Errors errors) {
+        if (errors.hasErrors()) {
+            return "student/regpic";  // 如果校验出错，重新返回表单
+        }
+        studentService.save(student);
+        // "redirect:"前缀重定向，"forward:"前缀前往指定的URL路径
+        return "redirect: /student/" + student.getId();
+    }
+```
+
+### 处理异常
+
+不管发生什么事情，不管是好的还是坏的，**Servlet请求的输出都是一个Servlet响应**。如果在请求处理的时候，出现了异常，那它的输出依然会是Servlet响应。异常必须要以某种方式转换为响应。
+
+Spring提供了多种方式将异常转换为响应：
+
+- 特定的Spring异常将会自动映射为指定的**HTTP状态码**；
+- 异常上可以添加`@ResponseStatus`注解，从而将其映射为某一个**HTTP状态码**；
+- 在方法上可以添加`@ExceptionHandler`注解，使其用来处理异常（非HTTP状态码）。
+
+#### 将异常映射为状态码
+
+在默认情况下，Spring会将自身的一些异常自动转换为合适的状态码。以下列出一些映射关系：
+
+- BindException：400 - Bad Request
+- ConversionNotSupportedException：500 - Internal Server Error
+- HttpMediaTypeNotAcceptableException：406 - Not Acceptable
+- HttpMediaTypeNotSupportedException：415 - Unsupported Media Type
+- HttpMessageNotReadableException：400 - Bad Request
+- HttpMessageNotWritableException：500 - Internal Server Error
+- HttpRequestMethodNotSupportedException：405 - Method Not Allowed
+- MethodArgumentNotValidException：400 - Bad Request
+- MissingServletRequestParameterException：400 - Bad Request
+- MissingServletRequestPartException：400 - Bad Request
+- NoSuchRequestHandlingMethodException：404 - Not Found
+- TypeMismatchException：400 - Bad Request
+
+
+Spring提供了`@ResponseStatus`注解将异常映射为HTTP状态码，以便应对应用所抛出的异常（实际上如果出现没有映射的异常，响应都会带有500状态码）。
+
+自定义应用异常：
+
+```java
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Student Not Found")
+public class StudentNotFoundException extends RuntimeException {
+}
+```
+
+控制器方法处理：
+
+```java
+    /**
+     * 接收请求的输入
+     * 处理路径变量：/student/2
+     *
+     * @param id 路径变量
+     * @param model
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public String student(@PathVariable("id") int id, Map model) {
+        Student student = studentService.findOne(id);
+        if (student == null) {
+            throw new StudentNotFoundException();
+        }
+
+        model.put("student", student);
+
+        // 返回逻辑视图名
+        return "student/student";
+    }
+```
+
+#### 编写异常处理的方法
+
+如果我们想在响应中不仅要包含状态码，还要包含所产生的错误，此时的话，我们就不能将异常视为HTTP错误了，而是**要按照处理请求的方式来处理异常了**。
+
+在控制器方法上添加`@ExceptionHandler`注解，使其用来处理异常（非HTTP状态码），该方法可以处理当前控制器中所有方法抛出的指定异常。
+
+控制器中添加方法：
+
+```java
+    /**
+     * 委托给该方法处理抛出的DuplicateStudentException异常
+     *
+     * 该方法可以处理当前Controller-控制器中所有方法抛出的
+     * DuplicateStudentException异常
+     *
+     * @return
+     */
+    @ExceptionHandler(DuplicateStudentException.class)
+    public String handleDuplicateStudent() {
+        return "error/duplicate";
+    }
+```
+
+新添加视图`error/duplicate.jsp`：
+
+```jsp
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page session="false" %>
+<%@ page isELIgnored="false" %>
+<html>
+<head>
+    <title>The list of Student</title>
+</head>
+<body>
+    <h1>The id of student is exists. </h1>
+</body>
+</html>
+```
+
+### 为控制器添加通知
+
+通常我们会创建一个基础的控制器类，所有控制器类要扩展这个类，从而继承通用的`@ExceptionHandler`方法。Spring3.2为这类问题引入了一个新的解决方案：控制器通知。控制器通知（controller advice）是任意带有`@ControllerAdvice`注解的类，这个类会包含一个或多个如下类型的方法：
+
+- `@ExceptionHandler`注解标注的方法；
+- `@InitBinder`注解标注的方法；
+- `@ModelAttribute`注解标注的方法。
+
+在带有`@ControllerAdvice`注解的类中，以上所述的这些方法会运用到整个应用程序所有控制器带有`@RequestMapping`注解的方法上。
+
+```java
+/**
+ * 控制器通知类，统一处理整个应用的异常
+ */
+@ControllerAdvice
+public class AppWideExceptionHandler {
+
+
+    /**
+     * 委托给该方法处理抛出的DuplicateStudentException异常
+     *
+     * 该方法可以应用到整个应用程序所有控制器
+     * 带有`@RequestMapping`注解的方法上
+     *
+     * @return
+     */
+    @ExceptionHandler(DuplicateStudentException.class)
+    public String handleDuplicateStudent() {
+        return "error/duplicate";
+    }
+}
 ```
 
 ## 使用Spring MVC创建REST API
