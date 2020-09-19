@@ -28,6 +28,10 @@ https://blog.csdn.net/nightrainljh/article/details/106124604
 
 https://blog.csdn.net/hollis_chuang/article/details/107031639
 
+了解红黑树的起源，理解红黑树的本质 https://juejin.im/post/6873458286998650893
+
+Java程序员必备基础：JDK 5-15都有哪些经典新特性  https://juejin.im/post/6873983588506238990
+
 
 
 
