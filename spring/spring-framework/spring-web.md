@@ -1626,6 +1626,192 @@ public class StudentDefaultRestController {
 }
 ```
 
+### 提供资源之外的其他内容
+
+#### 发送错误信息到客户端
+
+Spring提供了多种方式来处理异常的场景：
+
+- 使用`@ResponseStatus`注解可以指定状态码；
+- 控制器方法可以返回`ResponseEntity`对象，该对象能够包含更多响应相关的元数据（如头部信息和状态码）；
+- 异常处理器（`@ExceptionHandler`）能够应对错误场景，这样处理器方法就能关注于正常的状况。
+
+一、使用ResponseEntity
+
+作为`@ResponseBody`的替代方案，控制器方法可以返回一个`ResponseEntity`对象。`ResponseEntity`中可以包括响应相关的元数据（如头部信息和状态码）以及要转换称资源表述的对象（即负载）。
+
+`ResponseEntity`包含了`@ResponseBody`的语义，因此负载部分将会渲染到响应体中，就像之前在方法上使用`@ResponseBody`一样。
+
+负载为null场景：
+
+```java
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Student> student(@PathVariable("id") int id) {
+        Student student = studentService.findOne(id);
+        HttpStatus status = student != null ?
+                HttpStatus.OK : HttpStatus.NOT_FOUND;
+
+        return new ResponseEntity<>(student, status);
+    }
+```
+
+响应体中包含错误信息：
+
+```java
+/**
+ * 错误信息对象
+ */
+public class Error {
+
+    /**
+     * 自定义业务错误状态码
+     */
+    private int code;
+
+    /**
+     * 错误信息
+     */
+    private String message;
+
+    public Error(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+
+// 控制器中的处理器方法
+
+    /**
+     * 包含错误信息的返回对象
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<?> studentWithError(@PathVariable("id") int id) {
+        Student student = studentService.findOne(id);
+        if (student == null) {
+            Error error = new Error(4, "Student [" + id + "] not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(student, HttpStatus.OK);
+    }
+```
+
+二、使用异常处理器
+
+异常处理器`ExceptionHandler`能够处理导致问题的场景，这样常规的处理器方法就能只关心正常的逻辑处理路径了。
+
+```java
+public class StudentNotFoundException extends RuntimeException {
+
+    private int id;
+
+    public StudentNotFoundException(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+}
+
+// 控制器中的处理器方法
+
+    /**
+     * 借助异常处理器处理异常
+     *
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Student studentWithError(@PathVariable("id") int id) {
+        Student student = studentService.findOne(id);
+        if (student == null) {
+            throw new StudentNotFoundException(id);
+        }
+
+        return student;
+    }
+
+    @ExceptionHandler(StudentNotFoundException.class)
+    public ResponseEntity<Error> studentNotFound(StudentNotFoundException e) {
+        int id = e.getId();
+        Error error = new Error(4, "Student [" + id + "] not found");
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+```
+
+三、使用Rest控制器通知
+
+使用Rest控制器通知来统一处理异常：
+
+```java
+/**
+ * Rest控制器通知类，统一处理整个应用的异常
+ */
+@RestControllerAdvice
+public class AppWideRestExceptionHandler {
+
+    @ExceptionHandler(StudentNotFoundException.class)
+    public ResponseEntity<Error> studentNotFound(StudentNotFoundException e) {
+        int id = e.getId();
+        Error error = new Error(4, "Student [" + id + "] not found");
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+}
+
+```
+
+#### 在响应中设置头部信息
+
+使用`ResponseEntity`对象可以设置响应头：
+
+```java
+    /**
+     * 带有响应头的处理器
+     *
+     * @param student
+     * @param ucb
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Student> saveStudent(@RequestBody Student student,
+                                               UriComponentsBuilder ucb) {
+        Student stu = studentService.save(student);
+        HttpHeaders headers = new HttpHeaders();
+        // 计算Location URI
+        URI locationUri =
+                ucb.path("/api/student/default/")
+                .path(String.valueOf(stu.getId()))
+                .build()
+                .toUri();
+        headers.setLocation(locationUri);
+        return new ResponseEntity<>(stu, headers, HttpStatus.CREATED);
+    }
+```
+
 ## 参考
 
 - Spring实战-第4版
