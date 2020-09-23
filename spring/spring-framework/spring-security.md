@@ -320,32 +320,246 @@ public interface UserDetailsService {
 }
 ```
 
+自定义`UserDetailsService`接口实现：
+
+```java
+/**
+ * 自定义用户服务
+ *
+ */
+@Service
+public class UserService implements UserDetailsService {
+
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    private StudentService service;
+
+    public UserService(StudentService service) {
+        this.service = service;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Student student = service.findOneByName(username);
+
+        if (student != null) {
+            List<GrantedAuthority> authorities = new ArrayList<>();
+
+            // 创建权限列表
+            authorities.add(new SimpleGrantedAuthority("ROLE_STUDENT"));
+
+            // 返回User
+            return new User(
+                    student.getName(),
+                    passwordEncoder.encode("123456"),  // 设置密码转码器
+                    authorities);
+        }
+
+        throw new UsernameNotFoundException("User " + username + " not found.");
+    }
+}
+```
+
+启用用户自定义服务：
+
+```java
+/**
+ * 启用Web安全性
+ */
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+
+    @Autowired
+    private StudentService studentService;
+
+    /**
+     * 设置用户存储
+     *
+     * @param auth
+     * @throws Exception
+     */
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
+        // 使用自定义的用户服务
+        auth.userDetailsService(new UserService(studentService))
+                .passwordEncoder(new BCryptPasswordEncoder());  // 设置密码转码器
+    }
+}
+```
+
 ### 拦截请求
 
-对每个请求进行细粒度安全性控制的关键在于重载configure(HttpSecurity)方法。
+对每个请求进行细粒度安全性控制的关键在于重载`configure(HttpSecurity)`方法。
+
+```java
+    /**
+     * 设置请求拦截
+     *
+     * @param http
+     * @throws Exception
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // 这些规则会按照给定的顺序发挥作用
+        // 将最为具体的请求路径放在前面，
+        // 而最不具体的路径（如anyRequest()）放在最后面
+        http.authorizeRequests()
+                .antMatchers("/student/register").permitAll()
+                // 设置不拦截的请求
+                .antMatchers("/", "/student/list").permitAll()
+                // 使用SpEL表达式进行同一路径的多重控制
+                .antMatchers("/student/list2").access("hasRole('ROLE_STUDENT') and hasIpAddress('192.168.1.2')")
+                // 设置具有"ROLE_STUDENT"权限才可以访问
+                // hasAuthority("ROLE_STUDENT")可以使用hasRole("STUDENT")替代，它会自动给使用“ROLE_”前缀
+                .antMatchers("/api/student/**").hasAuthority("ROLE_STUDENT")
+                // 拦截其他所有请求
+                .anyRequest().authenticated();
+//            .and()
+//            // 强制通道的安全性，并自动将请求重定向到HTTPS上
+//            .requiresChannel()
+//                .antMatchers("/student/register").requiresSecure();
+
+        // 开启表单登录，否则会直接返回403状态页面
+        http.formLogin();
+        // 开启basic认证
+        http.httpBasic();
+        // 禁用CSRF（跨站请求伪造）防护功能
+        http.csrf().disable();
+    }
+```
+
+`antMatchers()`方法中设定的的路径支持Ant风格的通配符，可以指定多个路径。`regexMatchers`方法则能够接受正则表达式来定义请求路径。
+
+我们还通过`authenticated()`和`permitAll()`来定义如何保护路径。`authenticated()`要求在执行该请求时，必须已经登录了应用。如果用户没有认证的话，Spring Security的Filter将会捕获该请求，并将用户重定向到应用的登录页面。
+
+用于定义如何保护路径的配置方法包括：
+
+- access(String)：如果给定的SpEL表达式计算结果为true，就允许访问；
+- anonymous()：允许匿名用户访问；
+- authenticated()：允许认证过的用户访问；
+- denyAll()：无条件拒绝所有访问；
+- fullyAuthenticated()：如果用户是完整认证的话（不是通过Remember-me功能认证的），就允许访问；
+- hasAnyAuthority(String ...)：如果用户具备给定权限中的某一个的话，就允许访问；
+- hasAnyRole(String ...)：如果用户具备给定角色中的某一个的话，就允许访问；
+- hasAuthority(String)：如果用户具备给定权限的话，就允许访问；
+- hasIpAddress(String)：如果请求来自给定IP地址的话，就允许访问；
+- hasRole(String)：如果用户具备给定角色的话，就允许访问；
+- not()：对其他访问方法的结果求反；
+- permitAll()：无条件允许访问；
+- rememberMe()：如果用户是通过Remember-me功能认证的，就允许访问。
+
+可以使用任意数量的`antMatchers()`、`regexMatchers`和`anyRequest()`连接起来，以满足Web应用安全规则的需要。但是，我们需要知道，这些规则会按照给定的顺序发挥作用。所有，很重要的一点就是将**最为具体的请求路径放在前面**，而最不具体的路径（如anyRequest()）放在最后面。
+
+#### 使用Spring表达式（SpEL）进行安全保护
+
+要实现在同一路径下的多种访问控制，我们可以借助`access()`方法，将SpEL作为声明访问限制的一种方式。
+
+```java
+    http.authorizeRequests()
+            // 使用SpEL表达式进行同一路径的多重控制
+            .antMatchers("/student/list2").access("hasRole('ROLE_STUDENT') and hasIpAddress('192.168.1.2')")
+            .anyRequest().authenticated();  // 拦截其他所有请求
+```
+
+Spring Security通过一些安全性相关的表达式扩展了Spring表达式语言，以下列出：
+
+- authentication：用户的认证对象；
+- denyAll：结果始终为false；
+- hasAnyRole(list of roles)：如果用户被授予了列表中任意的指定角色，结果为true；
+- hasRole(role)：如果用户被授予了指定角色，结果为true；
+- hasIpAddress(IP Address)：如果请求来自指定IP的话，结果为true；
+- isAnonymous()：如果当前用户为匿名用户，结果为true；
+- isAuthenticated()：如果当前用户进行了认证的话，结果为true；
+- isFullyAuthenticated()：如果用户是完整认证的话（不是通过Remember-me功能认证的），结果为true；
+- isRememberMe()：如果用户是通过Remember-me功能认证的，结果为true；
+- permitAll：结果始终为true；
+- pricipal：用户的principal对象
+
+#### 强制通道的安全性
+
+借用`requiresChannel()`方法能够为各种URL模式声明所要求的通道。
+
+```java
+    http.authorizeRequests()
+            .antMatchers("/student/register").permitAll()
+            // 拦截其他所有请求
+            .anyRequest().authenticated()
+        .and()
+        // 强制通道的安全性，并自动将请求重定向到HTTPS上
+        .requiresChannel()
+            .antMatchers("/student/register").requiresSecure();
+```
 
 #### 防止跨站请求伪造
 
-跨站请求伪造（cross-site request forgery，CSRF），简单来讲，如果一个站点欺骗用户提交请求到其他服务器的话，就会发生CSRF攻击，这可能会带来消极的后果。
+**跨站请求伪造（cross-site request forgery，CSRF）**，简单来讲，如果一个站点欺骗用户提交请求到其他服务器的话，就会发生CSRF攻击，这可能会带来消极的后果。
 
-从Spring Security 3.2开始，默认就会启用CSRF防护。
+从Spring Security 3.2开始，**默认就会启用CSRF防护**。
 
-Spring Security通过一个同步token的方式来实现CSRF防护的功能。它将会拦截状态变化的请求（例如，非GET、HEAD、OPTIONS和TRACE的请求）并检查CSRF token。如果请求中不包含CSRF token的话，或者token不能与服务器端的token相匹配，请求将会失败，并抛出CsrfException异常。
+Spring Security通过一个**同步token**的方式来实现CSRF防护的功能。它将会**拦截状态变化的请求**（例如，非GET、HEAD、OPTIONS和TRACE的请求）并检查CSRF token。如果请求中不包含CSRF token的话，或者token不能与服务器端的token相匹配，请求将会失败，并抛出`CsrfException`异常。
 
-处理CSRF的另外一种方式就是根本不去处理它。我们可以在配置中通过调用csrf().disable()禁用Spring Security的CSRF防护功能：
+这意味着在你的应用中，所有的表单必须在一个“_csrf”域中提交token，而且这个token必须要与服务器端计算并存储的token一致，这样的话当表单提交的时候，才能进行匹配。
+
+处理CSRF的另外一种方式就是根本不去处理它。我们可以在配置中通过调用`csrf().disable()`禁用Spring Security的CSRF防护功能：
 
 ```java
-@Override
-protected void configure(HttpSecurity http) throws Exception {
-
-    http.csrf()
-          .disable();
-}
+    // 禁用CSRF（跨站请求伪造）防护功能
+    http.csrf().disable();
 ```
 
 ### 用户认证
 
-- 用户自定义登录页，适用于web项目
-- 启用HTTP Basic认证，适用于RESTful API。
-- 启用Remember-me功能，默认情况下，这个功能是通过在cookie中存储一个token完成的，这个token最多两周内有效。
-- 退出（logout），退出功能是通过Servlet容器中的Filter实现的（默认情况下），这个Filter会拦截针对“/logout”的请求。这个请求会被Spring Security的LogoutFilter所处理。用户会退出应用，所有的Remember-me token都会被清除掉。
+启用默认的登录页，可以在`configure(HttpSecurity)`方法中调用`formLogin()`方法：
+
+```java
+    // Web项目开启表单登录，否则会直接返回403状态页面
+    http.formLogin();
+```
+
+一、添加自定义的登录页
+
+在web项目中，可以添加自定义的登录页。
+
+二、启用HTTP Basic认证
+
+在RESTful API项目中，通常采用HTTP Basic认证完成安全性验证。HTTP Basic认证（HTTP Basic Authentication）会直接通过HTTP请求本身，对要访问应用程序的用户进行认证。当在Web浏览器中使用时，它将向用户弹出一个简单的模态对话框。
+
+但这只是Web浏览器的显示方式。本质上，这是一个HTTP 401响应（Status:401 Unauthorized），表明必须要在请求中包含一个用户名和密码。在REST客户端向它使用的服务进行认证的场景中，这种方式比较合适。
+
+启用HTTP Basic认证，可以在`configure(HttpSecurity)`方法中调用`httpBasic()`方法：
+
+```java
+    // RESTful API项目开启basic认证
+    http.httpBasic();
+```
+
+三、启用Remember-me功能
+
+许多站点提供了Remember-me功能，用户只要登录过一次，应用就会记住该用户，当再次回到应用的时候你就不需要登录了。
+
+默认情况下，这个功能是通过在**cookie**中存储一个**token**完成的，这个token最多两周内有效。存储在cookie中的token包含用户名、密码、过期时间和一个私钥-在写入cookie前都进行了MD5哈希。默认情况下的，私钥名为**SpringSecured**。
+
+启用Remember-me功能，可以在`configure(HttpSecurity)`方法中调用`rememberMe()`方法：
+
+```java
+    // 启用Remember-me功能
+    http.rememberMe()
+            .tokenValiditySeconds(2419200)  // 设置过期时间
+            .key("studentKey");  // 设置私钥
+```
+
+四、退出
+
+退出功能是通过Servlet容器中的Filter实现的（默认情况下），这个Filter会拦截针对“/logout”的请求。因此，为应用添加退出功能只需要添加"/logout"的链接即可。点击该链接会对"/logout"进行请求，这个请求会被Spring Security的`LogoutFilter`所处理。用户会退出应用，所有的Remember-me token都会被清除掉。
+
+启用退出功能，可以在`configure(HttpSecurity)`方法中调用`logout()`方法：
+
+```java
+    // 退出设置
+    http.logout()
+            .logoutSuccessUrl("/")  // 设置退出后重定向的页面
+            .logoutUrl("/logout");  // 设置LogoutFilter拦截的路径
+```
