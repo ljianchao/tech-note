@@ -8,5 +8,5 @@
 
 二、使用html格式特殊符号
 
-- 上标：a<sup>1</sup>
-- 下标：a<sub>1</sub>
+- 上标：使用标记`<sup></sup>`，例如 a<sup>1</sup>
+- 下标：使用标记`<sub></sub>`，例如 a<sub>1</sub>
