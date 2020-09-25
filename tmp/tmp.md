@@ -51,6 +51,19 @@ Quartz分布式集群遇到的问题 https://blog.csdn.net/nightrainljh/article/
 
 Java程序员必备基础：JDK 5-15都有哪些经典新特性  https://juejin.im/post/6873983588506238990
 
+Visual Studio Code 如何编写运行 C、C++ 程序？ https://blog.csdn.net/lyw851230/article/details/89352839  https://www.zhihu.com/question/30315894/answer/154979413
+
+整理：Visual Studio Code (vscode) 配置C、C++环境/编写运行C、C++（主要Windows、简要Linux） https://blog.csdn.net/bat67/article/details/76095813
+
+vscode 配置 C/C++ 编译环境 教程 https://blog.csdn.net/qq_43041976/article/details/100542557
+
+MinGW-W64 GCC-8.1.0 https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/
+
+C/C++ for Visual Studio Code https://code.visualstudio.com/docs/languages/cpp
+
+vscode-cpptools https://github.com/microsoft/vscode-cpptools
+
+
 
 
 
