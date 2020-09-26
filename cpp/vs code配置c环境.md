@@ -191,6 +191,7 @@ Tip: Use IntelliSense inside string values for tasks.json and launch.json to get
 - [Using GCC with MinGW](https://code.visualstudio.com/docs/cpp/config-mingw)
 - [Debugging](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
 - [Configuring C/C++ debugging](https://code.visualstudio.com/docs/cpp/launch-json-reference)
+- [Customizing default settings](https://code.visualstudio.com/docs/cpp/customize-default-settings-cpp)
 - [vscode-cpptools](https://github.com/microsoft/vscode-cpptools)
 - [Visual Studio Code 如何编写运行 C、C++ 程序？](https://www.zhihu.com/question/30315894/answer/154979413)
 - [Visual Studio Code 如何编写运行 C、C++ 程序？](https://blog.csdn.net/lyw851230/article/details/89352839)
