@@ -58,7 +58,7 @@
         "stopAtEntry": false, // 设为true时程序将暂停在程序入口处，相当于在main上打断点
         "cwd": "${workspaceFolder}", // 调试程序时的工作目录，此为工作区文件夹；改成${fileDirname}可变为文件所在目录
         "environment": [], // 环境变量
-        "externalConsole": true, // 使用单独的cmd窗口，与其它IDE一致；为false时使用内置终端
+        "externalConsole": false, // 使用单独的cmd窗口，与其它IDE一致；为false时使用内置终端
         "internalConsoleOptions": "neverOpen", // 如果不设为neverOpen，调试时会跳到“调试控制台”选项卡，你应该不需要对gdb手动输命令吧？
         "MIMode": "gdb", // 指定连接的调试器，可以为gdb或lldb。但我没试过lldb
         "miDebuggerPath": "gdb.exe", // 调试器路径，Windows下后缀不能省略，Linux下则不要
@@ -86,7 +86,8 @@
         "label": "Compile", // 任务名称，与launch.json的preLaunchTask相对应
         "command": "gcc",   // 要使用的编译器，C++用g++
         "args": [
-            "${file}",
+            "${fileDirname}\\LinearL.c",  
+            "${file}",  // 编译多个文件，就配置多个文件
             "-o",    // 指定输出文件名，不加该参数则默认输出a.exe，Linux下默认a.out
             "${fileDirname}\\${fileBasenameNoExtension}.exe",
             "-g",    // 生成和调试有关的信息
@@ -110,6 +111,40 @@
             "$gcc"  // 捕捉编译时终端里的报错信息到问题面板中，修改代码后需要重新编译才会再次触发；本来有Lint，再开problemMatcher就有双重报错，但MinGW的Lint效果实在太差了；用Clang可以注释掉
         ]
     }]
+}
+```
+
+`c_cpp_properties.json`文件中不能包含注释，"compilerPath"必须是全路径，内容：
+
+```json
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}\\structure"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:\\DevEnvironment\\mingw64\\bin\\gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}\\structure"
+                ],
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
 }
 ```
 
