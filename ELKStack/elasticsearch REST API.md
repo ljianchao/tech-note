@@ -247,3 +247,107 @@ GET /movies/_search?q=title:"Lord Rings"~2
   "profile": "true"
 }
 ```
+
+### Request Body Search详解
+
+将查询语句通过HTTP Request Body发送给Elasticsearch。
+
+Query DSL基本语法：
+
+```
+GET /movies/_search?ignore_unavailable=true
+{
+  "profile": "true",
+  "_source": ["name", "img", "nutrition", "timestamp"], 
+  "from": 0,
+  "size": 20, 
+  "sort": [
+    {
+      "timestamp": {
+        "order": "desc"
+      }
+    }
+  ], 
+  "query": {
+    "match_all": {}
+  }
+}
+```
+
+- `_source`：指定要返回的字段，如果`_source`没有存储，那就只返回匹配的文档的元数据；支持使用通配符`_source["name*", "img*"]`；
+- `from`和`size`：分页功能，`from`从0开始，默认返回10个结果，获取靠后的翻页成本较高；
+- `sort`：排序功能，最好在“数字型”与“日期型”字段上排序，因为对于多值类型或分析过的字段排序，系统会选一个值，无法得知该值。
+
+查询示例
+
+```
+// 脚本字段
+GET /movies/_search?ignore_unavailable=true
+{
+  "profile": "true",
+  "script_fields": {
+    "new_field": {
+      "script": {
+        "lang": "painless",
+        "source": "doc['name'] + params.suffix",
+        "params": {
+          "suffix": "-app"
+        }
+      }
+    }
+  }, 
+  "from": 0,
+  "size": 20, 
+  "sort": [
+    {
+      "timestamp": {
+        "order": "desc"
+      }
+    }
+  ], 
+  "query": {
+    "match_all": {}
+  }
+}
+
+// match查询
+// explain可以显示具体打分的细节
+GET /movies/_search
+{
+  "explain": true, 
+  "query": {
+    "match": {
+      "name": "Last Day"
+    }
+  }
+}
+
+// 短语搜索match phrase
+// query中的词按顺序出现，slop表明中间可以介入的词
+GET /movies/_search
+{
+  "explain": true, 
+  "query": {
+    "match_phrase": {
+      "name": {
+        "query": "Song Last Chrismas",
+        "slop": 1
+      }
+    }
+  }
+}
+
+```
+
+## 索引API
+
+```
+// 设置分片和副本
+PUT tmdb
+{
+  "settings": {
+    "number_of_shards": 3,
+    "numer_of_replicas":1
+  }
+}
+```
