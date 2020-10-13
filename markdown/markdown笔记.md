@@ -4,7 +4,7 @@
 
 一、Windows自带特殊符号
 
-要调用Windows自带特殊符号输入，使用快捷键`Ctrl + Shift + B`。
+要调用Windows自带特殊符号输入，使用快捷键`Ctrl + Shift + B`。也可以在中文输入法下输入`uuts`，点击最后的笑脸，就可以弹出特殊符号输入窗口。
 
 二、使用html格式特殊符号
 
