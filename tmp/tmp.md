@@ -63,6 +63,8 @@ C/C++ for Visual Studio Code https://code.visualstudio.com/docs/languages/cpp
 
 vscode-cpptools https://github.com/microsoft/vscode-cpptools
 
+Cmd Markdown 公式指导手册 https://www.zybuluo.com/codeep/note/163962#1%E5%A6%82%E4%BD%95%E6%8F%92%E5%85%A5%E5%85%AC%E5%BC%8F
+
 
 
 
