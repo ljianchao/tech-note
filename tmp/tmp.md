@@ -66,6 +66,12 @@ vscode-cpptools https://github.com/microsoft/vscode-cpptools
 Cmd Markdown 公式指导手册 https://www.zybuluo.com/codeep/note/163962#1%E5%A6%82%E4%BD%95%E6%8F%92%E5%85%A5%E5%85%AC%E5%BC%8F
 
 
+win10多用户同时远程桌面登陆(允许多个RDP会话)-支持win10最新1909版2004版 https://blog.csdn.net/super319/article/details/106202774
+
+Win10权限管理与多用户远程登录(多方案) https://www.jianshu.com/p/a35af096bea5
+
+Win10多用户远程登录 https://zhuanlan.zhihu.com/p/111485038
+
 
 
 
