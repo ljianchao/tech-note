@@ -73,6 +73,10 @@ Win10权限管理与多用户远程登录(多方案) https://www.jianshu.com/p/a
 Win10多用户远程登录 https://zhuanlan.zhihu.com/p/111485038
 
 
+Windows环境从零搭建SonarQube 7.4(稳定版)   https://www.jianshu.com/p/dcd71a58f926
+
+Windows环境从零搭建SonarQube 8.5(最新版)  https://www.jianshu.com/p/8c4cfc482aa6
+
 
 
 
