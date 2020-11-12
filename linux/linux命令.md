@@ -110,7 +110,21 @@ yum命令
     yum search name # 从仓库查询包含name的软件
     yum install name # 从仓库下载并安装name软件
     yum update # 更新系统软件
+
+    # 使用yum命令仅下载RPM包，而不安装，有两种方法
+    # 1. 安装yum-downloadonly插件，安装后，yum命令就多了两个命令参数：`--downloadonly`和`--downloaddir=/path/to/dir`
+    yum install yum-downloadonly
+    yum install 软件名称 --downloadonly --downloaddir=/path/to/dir
+
+    # 2. 不使用插件，修改配置文件`/etc/yum.conf`，将keepcache设置为1
+    `
+    [main]
+    cachedir=/var/cache/yum
+    keepcache=1
+    `
 ```
+
+
 
 ## 磁盘操作命令
 
