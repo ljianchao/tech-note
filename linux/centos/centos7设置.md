@@ -212,6 +212,7 @@ source /etc/profile
 - [有关 CentOS-7 的问题](https://wiki.centos.org/zh/FAQ/CentOS7)
 - [初装CentOS环境配置（CentOS7网络配置）](https://blog.csdn.net/loveyou388i/article/details/80797629)
 - [centos7配置国内yum源](https://xiaojin21cen.blog.csdn.net/article/details/84726193)
+- [Linux系统yum命令安装软件时保留(下载)rpm包](https://zhangge.net/4222.html)
 - [阿里云官方镜像站](https://developer.aliyun.com/mirror/)
 - [阿里云CentOS镜像](https://developer.aliyun.com/mirror/centos?spm=a2c6h.13651102.0.0.3e221b11QdYsDh)
 - [阿里云Epel 镜像](https://developer.aliyun.com/mirror/epel?spm=a2c6h.13651102.0.0.1cb31b11kba1ZE)
