@@ -93,11 +93,38 @@ CentOS7
     curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
 ```
 
-### 生成缓存
+### 3. 生成缓存
 
 ```shell
     yum clean all  # 清除系统所有的yum缓存
     yum makecache  # 生成yum缓存
+```
+
+## 设置yum不删除RPM包
+
+使用yum命令不删除RPM包有两种方法：插件和修改配置文件。
+
+### 插件方式
+
+安装yum-downloadonly插件仅下载RPM包，而不安装，安装后，yum命令就多了两个命令参数：`--downloadonly`和`--downloaddir=/path/to/dir`
+
+```shell
+    yum -y install yum-downloadonly
+```
+
+安装后，假如使用yum命令安装`lrzsz`软件，命令如下：
+
+```shell
+    yum install lrzsz --downloadonly --downloaddir=/path/to/dir
+```
+
+### 修改配置文件
+
+修改配置文件`/etc/yum.conf`，将`keepcache`设置为`1`
+
+```properties
+    [main]
+    keepcache=1
 ```
 
 ## 设置Epel 镜像
