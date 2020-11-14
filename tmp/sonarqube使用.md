@@ -22,6 +22,8 @@
 
     docker save -o sonarqube-8.3-community-docker.tar.gz sonarqube:8.3-community
 
+    docker save -o sonarqube-7.9-community-docker.tar.gz sonarqube:7.9-community
+
     # 无网主机上导入镜像的压缩包
     docker load -i postgres-docker.tar.gz
     docker load -i sonarqube-8.4-community-docker.tar.gz
@@ -38,7 +40,8 @@
     mkdir -p /opt/soft/docker/sonarqube && \
     mkdir /opt/soft/docker/sonarqube/data && \
     mkdir /opt/soft/docker/sonarqube/extensions && \
-    mkdir /opt/soft/docker/sonarqube/logs
+    mkdir /opt/soft/docker/sonarqube/logs && \
+    mkdir /opt/soft/docker/sonarqube/lib
 ```
 
 ### 3. 启动postgres容器
@@ -67,6 +70,8 @@
     -v /opt/soft/docker/sonarqube/data:/opt/sonarqube/data \
     -v /opt/soft/docker/sonarqube/extensions:/opt/sonarqube/extensions \
     -v /opt/soft/docker/sonarqube/logs:/opt/sonarqube/logs \
+    -v /opt/soft/docker/sonarqube/lib/sonarqube-community-branch-plugin-1.5.0.jar:/opt/sonarqube/lib/common/sonarqube-community-branch-plugin.jar \
+    -v /opt/soft/docker/sonarqube/lib/sonarqube-community-branch-plugin-1.5.0.jar:/opt/sonarqube/extensions/plugins/sonarqube-community-branch-plugin.jar \
     sonarqube:8.4-community
 ```
 
@@ -143,16 +148,12 @@ github网站下载阿里p3c规范插件[sonar-java](https://github.com/SonarSour
   -Dsonar.host.url=http://127.0.0.1:9000 \
   -Dsonar.login=f6e0b747d91c8845b376cb97e11d3a8a0f58ae89 \
   -Dsonar.branch.name=master
-
-  mvn sonar:sonar -Dsonar.projectKey=demo -Dsonar.host.url=http://127.0.0.1:9000 -Dsonar.login=f6e0b747d91c8845b376cb97e11d3a8a0f58ae89 -Dsonar.branch.name=master
 ```
 
 - 参数`-Dsonar.projectKey`指定项目名称
 - 参数`-Dsonar.host.url`指定管理端地址
 - 参数`-Dsonar.login`指定管理界面的令牌
 - 参数`-Dsonar.branch.name`指定分支名称
-
-mvn sonar:sonar -Dsonar.projectKey=youlin-health-rj -Dsonar.host.url=http://192.168.1.124:9000 -Dsonar.login=426066387726d2f6d4d1178e0de1053807cabde9 -Dsonar.branch.name=circle
 
 #### 2）sonar-scanner提交
 
