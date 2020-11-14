@@ -3,6 +3,9 @@
 ## 基础命令
 
 ```shell
+## 启动docker服务
+systemctl start docker
+
 ## 查看容器
 docker ps
 
