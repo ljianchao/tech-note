@@ -107,6 +107,7 @@ CentOS7
 ### 插件方式
 
 安装yum-downloadonly插件仅下载RPM包，而不安装，安装后，yum命令就多了两个命令参数：`--downloadonly`和`--downloaddir=/path/to/dir`
+> 目前yum已集成该插件，不要单独进行安装操作
 
 ```shell
     yum -y install yum-downloadonly
@@ -117,6 +118,8 @@ CentOS7
 ```shell
     yum install lrzsz --downloadonly --downloaddir=/path/to/dir
 ```
+
+如果系统中已经安装了`lrzsz`软件，那么就不会下载成功了，可以先使用`yum remove`卸载。
 
 ### 修改配置文件
 
@@ -213,6 +216,7 @@ source /etc/profile
 - [初装CentOS环境配置（CentOS7网络配置）](https://blog.csdn.net/loveyou388i/article/details/80797629)
 - [centos7配置国内yum源](https://xiaojin21cen.blog.csdn.net/article/details/84726193)
 - [Linux系统yum命令安装软件时保留(下载)rpm包](https://zhangge.net/4222.html)
+- [阿里云CentOS-7Packages](https://mirrors.aliyun.com/centos/7/os/x86_64/Packages/)
 - [阿里云官方镜像站](https://developer.aliyun.com/mirror/)
 - [阿里云CentOS镜像](https://developer.aliyun.com/mirror/centos?spm=a2c6h.13651102.0.0.3e221b11QdYsDh)
 - [阿里云Epel 镜像](https://developer.aliyun.com/mirror/epel?spm=a2c6h.13651102.0.0.1cb31b11kba1ZE)
