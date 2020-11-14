@@ -110,6 +110,10 @@ yum命令
     yum search name # 从仓库查询包含name的软件
     yum install name # 从仓库下载并安装name软件
     yum update # 更新系统软件
+    yum list installed  # 列出所有已安装的软件包
+    yum list updates  # 列出所有可更新的软件包
+    # 列出并排序您存储库中可用的版本。此示例按版本号（从高到低）对结果进行排序
+    yum list audit-libs.x86_64 --showduplicates | sort -r
 
     # 使用yum命令仅下载RPM包，而不安装，有两种方法
     # 1. 安装yum-downloadonly插件，安装后，yum命令就多了两个命令参数：`--downloadonly`和`--downloaddir=/path/to/dir`
