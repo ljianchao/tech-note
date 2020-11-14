@@ -82,6 +82,8 @@ Win10 网络故障默认网关 0.0.0.0  https://www.opsit.cn/1136.html
 两个网卡的默认网关修改  https://blog.csdn.net/pachleng/article/details/29815327?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~baidu_landing_v2~default-5-29815327.nonecase&utm_term=%E9%BB%98%E8%AE%A4%E7%BD%91%E5%85%B3%E6%9C%89%E4%B8%A4%E4%B8%AA%E6%80%8E%E4%B9%88%E5%88%A0%E9%99%A4&spm=1000.2123.3001.4430
 
 
+Navicat Premium 15破解 https://www.cnblogs.com/kkdaj/p/12794804.html
+
 
 
 
