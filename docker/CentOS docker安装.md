@@ -139,10 +139,14 @@ Docker 安装完默认未启动。并且已经创建好 docker 用户组，但�
 
 ## Docker 镜像加速
 
+阿里云镜像[获取地址](https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors)，登陆后，左侧菜单选中镜像加速器就可以看到你的专属地址了。
+
 对于使用 systemd 的系统，请在 `/etc/docker/daemon.json` 中写入如下内容（如果文件不存在请新建该文件）：
 
 ```json
-    {"registry-mirrors":["https://reg-mirror.qiniu.com/"]}
+{
+  "registry-mirrors": ["https://<你的ID>.mirror.aliyuncs.com"]
+}
 ```
 
 之后重新启动服务
