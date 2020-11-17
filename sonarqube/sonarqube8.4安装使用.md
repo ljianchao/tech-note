@@ -165,10 +165,10 @@ UI界面的地址和账号信息如下：
 
 ```shell
     sonar-scanner -Dsonar.host.url=http://localhost:9000 \
-    -Dsonar.projectKey=sonarqube_test  \
-    -Dsonar.login=09904533c04eee38bc6c6d5b4acfc4fb73865626 \
+    -Dsonar.projectKey=demo  \
     -Dsonar.java.binaries=. \
     -Dsonar.java.source=11 \
+    -Dsonar.branch.name=master \
     -X
 ```
 
