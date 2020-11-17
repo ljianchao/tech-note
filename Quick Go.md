@@ -1,8 +1,9 @@
 # Quick Go
 
-## aliyun
+## 镜像站汇总
 
 - [阿里云官方镜像站](https://developer.aliyun.com/mirror/)
+- [语雀开源](https://www.yuque.com/fvxoda)
 
 ## linux
 
@@ -52,3 +53,12 @@
 - [阿里云Docker CE镜像配置](https://developer.aliyun.com/mirror/docker-ce)
     - 加速地址：`https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo`
 - [阿里云镜像加速获取地址](https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors)
+
+## github
+
+- [github国内代理](https://github.strcpy.cn/)
+- [语雀加速](https://www.yuque.com/fvxoda)
+
+## Magnet
+
+- [虚名寻](https://www.xumingxun.com/bt-search)
