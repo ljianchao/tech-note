@@ -167,7 +167,7 @@ UI界面的地址和账号信息如下：
     sonar-scanner -Dsonar.host.url=http://localhost:9000 \
     -Dsonar.projectKey=demo  \
     -Dsonar.java.binaries=. \
-    -Dsonar.java.source=11 \
+    -Dsonar.java.source=8 \
     -Dsonar.branch.name=master \
     -X
 ```
@@ -216,7 +216,9 @@ SonarLint 是 SonarQube的单机版，可以作为Idea的插件进行代码规�
 
 ## 参考
 
-- [Install the Server](https://docs.sonarqube.org/latest/setup/install-server/)
+- [SonarQube Install the Server](https://docs.sonarqube.org/latest/setup/install-server/)
+- [SonarQube Analysis Parameters](https://docs.sonarqube.org/latest/analysis/analysis-parameters/)
+- [SonarQube Java](https://docs.sonarqube.org/latest/analysis/languages/java/)
 - [docker部署sonarqube](https://zhuanlan.zhihu.com/p/139175875)
 - [docker 安装 sonarQube](https://www.cnblogs.com/shenh/p/13428029.html)
 - [Windows环境从零搭建SonarQube 7.4(稳定版)](https://www.jianshu.com/p/dcd71a58f926)
