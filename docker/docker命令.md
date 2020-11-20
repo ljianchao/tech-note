@@ -27,6 +27,9 @@ docker run -itd --name ubuntu-test ubuntu /bin/bash
 docker run -d -P training/webapp python app.py
 docker run -d -p 5000:5000 training/webapp python app.py
 
+## 查看容器的配置
+docker inspect <容器 ID>
+
 ## 查看容器网络端口的快捷方式
 docker port <容器 ID>
 docker port <容器 NAME>
@@ -83,7 +86,16 @@ docker search httpd
 docker rmi hello-world
 ```
 
+## 修改启动参数
+
+- 停止docker服务
+- 找到容器id
+- 进入宿主机容器的配置文件目录：`/var/lib/docker/containers/{容器id}`
+- 修改配置文件`config.v2.json`
+- 启动docker 服务
+
 ## 参考
 
 - [Docker 命令大全](https://www.runoob.com/docker/docker-command-manual.html)
 - [Docker 资源汇总](https://www.runoob.com/docker/docker-resources.html)
+- [修改通过docker run启动容器参数](https://www.cnblogs.com/blackmood/p/12182905.html)
