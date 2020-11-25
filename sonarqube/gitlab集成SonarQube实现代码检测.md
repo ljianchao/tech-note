@@ -135,6 +135,11 @@ job1:
 gitlab集成SonarQube可以修改项目目录下的`.gitlab-ci.yml`文件，`script`内容设置为`sonar-scanner`运行的指令
 
 ```yml
+variables:
+  SONAR_URL: "http://127.0.0.1:9000"
+  SONAR_LOGIN: 6d190aebe5c01fd18f22c212f47fc5f657a29f1d
+  SONAR_EXCLUSIONS: "demo-redis/**/*,demo-mq/**/*"
+
 stages:
   - test
 
@@ -143,7 +148,15 @@ job1:
   only:
     - master
   script:
-    - sonar-scanner -Dsonar.branch.name=master -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=http://localhost:9000 -Dsonar.login=6d190aebe5c01fd18f22c212f47fc5f657a29f1d -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=11 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH
+    - sonar-scanner -Dsonar.branch.name=master -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH
+
+job2:
+  stage: test
+  only:
+    - dev
+  script:
+    - sonar-scanner -Dsonar.branch.name=dev -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH
+
 ```
 
 ## 参考
