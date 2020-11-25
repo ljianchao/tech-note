@@ -1,55 +1,9 @@
-根据CPU核心数确定线程池并发线程数 https://www.cnblogs.com/dennyzhangdd/p/6909771.html?utm_source=itdadao&utm_medium=referral
-
-Java线程的CPU时间片 https://blog.csdn.net/wangyangzhizhou/article/details/80141350
-
-计算密集型任务和IO密集型任务的区别 https://blog.csdn.net/u012611644/article/details/80158578
-
-如何合理地估算线程池大小？ http://ifeve.com/how-to-calculate-threadpool-size/
-
-并发下线程池的最佳数量计算 https://blog.csdn.net/qq_34417408/article/details/78895573
-
-java 项目，大量线程，大量sleep , 导致CPU上涨 https://www.oschina.net/question/2748601_2287236
-
-应用启动耗时分析 http://kail.xyz/Troubleshooting/docs/Arthas/Case/Slow-Start/
-
-Arthas实践--抽丝剥茧排查线上应用日志打满问题 https://mp.weixin.qq.com/s?__biz=MzU2MTY2MjE4OQ==&mid=2247483693&idx=1&sn=07844467222895a1865c4d51be75ffe6&spm=a2c4e.10696291.0.0.1a7919a4h3ew2x&scene=21#wechat_redirect
-
-当Dubbo遇上Arthas：排查问题的实践 https://mp.weixin.qq.com/s?__biz=MzU2MTY2MjE4OQ==&mid=2247483707&idx=1&sn=df1f0ab392515ac989bfe7536390119c&spm=a2c4e.10696291.0.0.5e1219a4nPDDP3&scene=21#wechat_redirect
-
-Arthas实践--快速排查Spring Boot应用404/401问题 https://mp.weixin.qq.com/s?__biz=MzU2MTY2MjE4OQ==&mid=2247483739&idx=1&sn=bd82ff81acc914b7d5305503334aadbe&spm=a2c4e.10696291.0.0.255919a4pdxYPV&scene=21#wechat_redirect
-
-利用 Arthas 精准定位 Java 应用 CPU 负载过高问题 https://mp.weixin.qq.com/s/VwGKN-MHzdsVMrROrxREaw
-
-java面试-JVM调优和参数配置，如何查看JVM系统参数默认值 https://www.cnblogs.com/wjh123/p/11080121.html
-
-JVM参数（三）打印所有XX参数及值 https://www.cnblogs.com/duanxz/p/6098908.html
-
-发布或重启线上服务时抖动问题解决方案 https://www.cnblogs.com/LBSer/p/3703967.html
-
-JAVA程序CPU 100%问题排查 https://www.cnblogs.com/xiaoL/p/9774095.html
-
-jstack: Java占用高CPU分析之- C2 Compiler Thread https://blog.csdn.net/chenxiusheng/article/details/74007750
-
-Linux vmstat命令详解 https://www.jellythink.com/archives/419
-
-浅析Java中的线程状态 https://zhuanlan.zhihu.com/p/76275127
-
-java中WAITING状态的线程为啥还会消耗CPU https://www.lagou.com/lgeduarticle/74618.html
-
-Java线程的6种状态及切换(透彻讲解) https://blog.csdn.net/qq_22771739/article/details/82529874
-
-java synchronized优化 https://blog.csdn.net/zwjyyy1203/article/details/83002139
-
-Java获取本机IP https://www.jianshu.com/p/f619663f0f0a
-
 Quartz分布式集群遇到的问题 https://blog.csdn.net/nightrainljh/article/details/106124604
 
 
 2020年排名前20的基于SpringBoot搭建的开源项目，帮你快速进行项目搭建！ https://blog.csdn.net/hollis_chuang/article/details/107031639
 
 了解红黑树的起源，理解红黑树的本质 https://juejin.im/post/6873458286998650893
-
-Java程序员必备基础：JDK 5-15都有哪些经典新特性  https://juejin.im/post/6873983588506238990
 
 Visual Studio Code 如何编写运行 C、C++ 程序？ https://blog.csdn.net/lyw851230/article/details/89352839  https://www.zhihu.com/question/30315894/answer/154979413
 
@@ -63,57 +17,31 @@ C/C++ for Visual Studio Code https://code.visualstudio.com/docs/languages/cpp
 
 vscode-cpptools https://github.com/microsoft/vscode-cpptools
 
-Cmd Markdown 公式指导手册 https://www.zybuluo.com/codeep/note/163962#1%E5%A6%82%E4%BD%95%E6%8F%92%E5%85%A5%E5%85%AC%E5%BC%8F
-
-
-win10多用户同时远程桌面登陆(允许多个RDP会话)-支持win10最新1909版2004版 https://blog.csdn.net/super319/article/details/106202774
-
-Win10权限管理与多用户远程登录(多方案) https://www.jianshu.com/p/a35af096bea5
-
-Win10多用户远程登录 https://zhuanlan.zhihu.com/p/111485038
-
-
-Windows环境从零搭建SonarQube 7.4(稳定版)   https://www.jianshu.com/p/dcd71a58f926
-
-Windows环境从零搭建SonarQube 8.5(最新版)  https://www.jianshu.com/p/8c4cfc482aa6
-
-Win10 网络故障默认网关 0.0.0.0  https://www.opsit.cn/1136.html
-
-两个网卡的默认网关修改  https://blog.csdn.net/pachleng/article/details/29815327?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~baidu_landing_v2~default-5-29815327.nonecase&utm_term=%E9%BB%98%E8%AE%A4%E7%BD%91%E5%85%B3%E6%9C%89%E4%B8%A4%E4%B8%AA%E6%80%8E%E4%B9%88%E5%88%A0%E9%99%A4&spm=1000.2123.3001.4430
-
-
 Navicat Premium 15破解 https://www.cnblogs.com/kkdaj/p/12794804.html
 
+- [maven nexus 私服搭建 Windows版](https://www.cnblogs.com/ztone/p/11151889.html)
 
+## windows
 
+- [windows 2008 server 服务器远程桌面连接会话自动注销](https://www.cnblogs.com/oymx/p/4169663.html)
+- [windows server下设置远程会话自动注销](https://www.cnblogs.com/xienb/p/10082515.html)
+- [Windows Server 2003远程桌面连接注销和结束会话](https://blog.csdn.net/gscaiyucheng/article/details/20211843)
+- [Windows server 2012_远程_没有远程桌面授权服务器可以提供许可证](https://blog.csdn.net/zhangzhen1992/article/details/80838302)
+- [Win10多用户远程登录](https://zhuanlan.zhihu.com/p/111485038)
+- [Win10权限管理与多用户远程登录(多方案)](https://www.jianshu.com/p/a35af096bea5)
+- [win10多用户同时远程桌面登陆(允许多个RDP会话)-支持win10最新1909版2004版](https://blog.csdn.net/super319/article/details/106202774)
+- [Win10 网络故障默认网关 0.0.0.0](https://www.opsit.cn/1136.html)
+- [两个网卡的默认网关修改](https://blog.csdn.net/pachleng/article/details/29815327)
 
+## jenkins
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- [Jenkins详细教程](https://www.jianshu.com/p/5f671aca2b5a)
+- [Android Jenkins+Git+Gradle持续集成-实在太详细](https://www.jianshu.com/p/38b2e17ced73)
+- [Gradle之持续集成 - 使用Jenkins构建Gradle项目](https://blog.csdn.net/weixin_38062353/article/details/82357085)
+- [Jenkins（四）持续集成-maven区分环境打包](https://blog.csdn.net/weixin_40039268/article/details/95316950)
+- [Jenkins部署Maven多环境项目（dev、beta、prod）的参数设置](https://blog.csdn.net/xlgen157387/article/details/68961371)
+- [Jenkins 参数化构建（六）](https://www.jianshu.com/p/ffcc4c1eec99)
+- [Jenkins 为开发环境、生产环境等不同环境构建war](https://blog.csdn.net/quwenzhe/article/details/55195404)
+- [jenkins离线安装插件的方法(无法访问外网)](https://www.cnblogs.com/yy-cola/p/10162062.html)
+- [jenkins git status code 128](https://www.cnblogs.com/dzblog/p/9449072.html)
+- [Git rebase "unable to create file" "Permission denied" ](https://www.jianshu.com/p/90cfade77963)
