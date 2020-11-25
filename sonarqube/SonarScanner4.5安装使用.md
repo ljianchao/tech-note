@@ -37,7 +37,7 @@ sonar.projectKey=demo
 
 ## 运行SonarScanner 
 
-进入解压后的文件夹`/opt/soft/sonar-scanner-4.5.0.2216-linux`，修改配置文件`conf/sonar-scanner.properties`，更新和`SonarQube server`相关的全局配置：
+进入解压后的文件夹`/opt/soft/sonar-scanner-4.5.0.2216-linux`，修改配置文件`conf/sonar-scanner.properties`，更新`SonarQube server`的全局配置：
 
 ```properties
 #----- Default SonarQube server
