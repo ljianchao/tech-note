@@ -105,9 +105,9 @@ github网站下载汉化插件[sonar-l10n-zh](https://github.com/xuhuisheng/sona
 
 #### 2) 配置缺省的质量配置（Quality Profiles）
 
-SonarQube8.0到8.4缺省的**质量配置（Quality Profiles）**没有配置任何语言，需要使用者自行安装，否则会提示出错。我们是java语言开发，所以安装`sonar-java`插件。
+> SonarQube8.0到8.4缺省的`质量配置（Quality Profiles）`没有配置任何语言，需要使用者自行安装，否则会提示出错。我们是java语言开发，所以安装`sonar-java`插件。
 
-github网站下载阿里p3c规范插件[sonar-java](https://github.com/SonarSource/sonar-java)，选择合适的版本[下载](https://github.com/SonarSource/sonar-java/releases)，我们选择适用于sonarqube8.4的版本`6.8.0.23379`。
+github网站下载java规范插件[sonar-java](https://github.com/SonarSource/sonar-java)，选择合适的版本[下载](https://github.com/SonarSource/sonar-java/releases)，我们选择适用于sonarqube8.4的版本`6.8.0.23379`。
 
 本次下载的是源码包，需要使用maven命令打包生成需要的插件的jar包，，然后放到sonarqube容器映射的本地目录`/opt/soft/docker/sonarqube/extensions/downloads`下，重启容器生效。
 
