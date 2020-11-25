@@ -15,7 +15,7 @@
 
 `GitLab CI`最大的作用是管理各个项目的构建状态，因此，运行构建任务这种浪费资源的事情就交给`GitLab Runner`来做。`GitLab Runner`可以分布在不同的主机上，同一个主机上也可以有多个Runner，所以在构建任务运行期间并不会影响到 `GitLab`的性能。
 
-GitLab-Runner可以分类两种类型：Shared Runner（共享型）和Specific Runner（指定型）。
+GitLab-Runner可以分为两种类型：Shared Runner（共享型）和Specific Runner（指定型）。
 
 - `Shared Runner`：这种Runner是所有工程都能够用的。只有系统管理员能够创建Shared Runner。
 - `Specific Runner`：这种Runner只能为指定的工程服务。拥有该工程访问权限的人都能够为该工程创建Specific Runner。
@@ -36,7 +36,7 @@ GitLab-Runner可以分类两种类型：Shared Runner（共享型）和Specific 
 
 #### 3. 设置权限
 
-在`gitlab-runner`执行过程中大多数是文件夹不存在，无权限。需要先卸载，然后增加`root`用户重新安装。
+在`gitlab-runner`执行过程中大多数文件夹不存在，无权限。需要先卸载，然后增加`root`用户重新安装。
 
 ```shell
     # 创建缓存目录
@@ -89,9 +89,9 @@ check_interval = 0
     gitlab-runner restart
 ```
 
-注册完成后，登录gitlab，打开`项目页面，在项目的`Settings`设置页面，选择`CI/CD Pipelines`选项卡，可以看到已注册的runner。
+注册完成后，登录gitlab，打开项目页面，在项目的`Settings`设置页面，选择`CI/CD Pipelines`选项卡，可以看到已注册的runner。
 
-### git-lab常用命令
+### gitlab-runner常用命令
 
 ```shell
     gitlab-runner list  # 查看各个runner的状态
@@ -131,6 +131,8 @@ job1:
 登录gitlab管理页面，查看本次提交的执行状态。
 
 ## 集成SonarQube
+
+> `sonar-scanner`必须和`gitlab-runner`安装在同一服务器上，这样`gitlab-runner`才可以调用`sonar-scanner`的命令进行分析。
 
 gitlab集成SonarQube可以修改项目目录下的`.gitlab-ci.yml`文件，`script`内容设置为`sonar-scanner`运行的指令
 
