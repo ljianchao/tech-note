@@ -99,6 +99,12 @@ windows系统的命令如下：
     -Dsonar.exclusions=demo-redis/**/*, demo-cache/**/*
 ```
 
+排除需要分析的模块和测试文件：
+
+```
+    -Dsonar.exclusions=demo-redis/**/*,demo-cache/**/*,**/*Test.java,**/*Tests.java
+```
+
 ## 参考
 
 - [SonarScanner官方介绍](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/#)
