@@ -53,6 +53,6 @@ public class ArrayList<E> extends AbstractList<E>
 
 - `DEFAULT_CAPACITY（int类型）`：底层数组的默认初始化容量（值为10）；
 - `EMPTY_ELEMENTDATA（Object[]类型）`：共享的空数组实例；
-- `DEFAULTCAPACITY_EMPTY_ELEMENTDATA（Object[]）`：共享的空数组实例，用于`ArrayList`默认无参构造函数，创建一个空列表`ArrayList`。我们将此与`EMPTY_ELEMENTDATA`区别开来，在填充第一个元素时，会进行`elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA`的判断，以便进行数组的扩充。
+- `DEFAULTCAPACITY_EMPTY_ELEMENTDATA（Object[]类型）`：共享的空数组实例，用于`ArrayList`默认无参构造函数，创建一个空列表`ArrayList`。我们将此与`EMPTY_ELEMENTDATA`区别开来，在填充第一个元素时，会进行`elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA`的判断，以便进行数组的扩充。
 - `elementData（transient Object[]类型）`：存储`ArrayList`的数据元素的数组缓冲区，`ArrayList`的容量大小为该数组缓冲区的长度。任何具有`elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA`的空`ArrayList`（即采用无参构造函数创建的ArrayList）在填充第一个元素时，都将扩充为容量为`DEFAULT_CAPACITY`（值为10）的新数组。
 - `size（int类型）`：`ArrayList`包含的元素数量。
