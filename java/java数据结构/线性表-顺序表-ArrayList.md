@@ -266,7 +266,7 @@ public class ArrayList<E> extends AbstractList<E>
 - `lastRet（int类型）`：迭代器返回的最后一个元素的索引，**-1** 表示刚调用了一次 `Itr` 实例的 `remove()` 方法；
 - `expectedModCount（int类型）`：存储`Itr`实例化时 `modCount` 的值，用于判断外围类 `ArrayList` 实例是否发生结构性的更改。在重载 `remove` 方法中删除元素后，会重新设置 `expectedModCount` 的值为外围类实例 `ArrayList` 当前 `modCount` 的值。
 
-### 私有迭代器类 ListItr
+### 私有列表迭代器类 ListItr
 
 私有嵌套类 `ListItr` 扩展了私有嵌套类 `Itr`，并实现了接口 `ListIterator<E>`，是 `AbstractList.ListItr` 的优化版本。
 
@@ -287,7 +287,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 - `ListItr(int index)`：该构造函数会根据传入的参数 `index` 设置字段 `cursor` 的值，指定了要返回的下一个元素的索引。
 
-### 私有子列表 SubList
+### 私有子列表类 SubList
 
 私有嵌套类 `SubList` 扩展了抽象类 `AbstractList<E>`，并实现了标记接口 `RandomAccess`。该类实际操作的是传入其构造函数的外围类的实例，它对其外围类进行了包装，相当于一个包装类（wrapper class）。
 
