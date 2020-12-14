@@ -16,6 +16,16 @@
 
 > 注意，迭代器的快速失败行为无法得到保证，因为一般来说，在存在不同步的并发修改时，不可能做出任何硬性保证（hard guarantees）。快速失败迭代器会尽最大努力抛出 `ConcurrentModificationException`。因此，为提高这类迭代器的正确性而编写一个依赖于此异常的程序是错误的做法：迭代器的快速失败行为应该仅用于**检测bug**。
 
+## ArrayList相关图
+
+类型层次：
+
+![ArrayList的类型层次](../resources/ArrayList-Hierarchy.png)
+
+类图关系：
+
+![类图关系](../resources/ArrayList-ClassDiagram.png)
+
 ## 基本定义和字段
 
 ```java
