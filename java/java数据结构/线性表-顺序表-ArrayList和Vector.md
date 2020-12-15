@@ -1,4 +1,6 @@
-# 线性表-顺序表-ArrayList
+# 线性表-顺序表-ArrayList和Vector
+
+## ArrayList 类
 
 `ArrayList` 类是 `List` 接口的可调整大小的数组实现，是具有顺序存储结构的线性表。它实现了所有可选的列表操作，并且允许存储包括 `null` 值在内的所有元素。除了实现 `List` 接口外，此类还提供了一些方法来操作内部用于存储列表元素的数组的大小。（这个类大致相当于 `Vector` 类，除了**它不是同步的**）。
 
@@ -16,17 +18,7 @@
 
 > 注意，迭代器的快速失败行为无法得到保证，因为一般来说，在存在不同步的并发修改时，不可能做出任何硬性保证（hard guarantees）。快速失败迭代器会尽最大努力抛出 `ConcurrentModificationException`。因此，为提高这类迭代器的正确性而编写一个依赖于此异常的程序是错误的做法：迭代器的快速失败行为应该仅用于**检测bug**。
 
-## ArrayList相关图
-
-类型层次：
-
-![ArrayList的类型层次](../resources/ArrayList-Hierarchy.png)
-
-类图关系：
-
-![类图关系](../resources/ArrayList-ClassDiagram.png)
-
-## 基本定义和字段
+### 基本定义和字段
 
 ```java
 public class ArrayList<E> extends AbstractList<E>
@@ -90,9 +82,9 @@ public class ArrayList<E> extends AbstractList<E>
 - `ArrayList(int initialCapacity)`：使用传入参数 `initialCapacity` 的值初始化存储数据元素的数据缓冲区 `elementData`；`initialCapacity` 的值为 0 时，使用静态字段 `EMPTY_ELEMENTDATA` 表示的空数组初始化该数组缓冲区；
 - `ArrayList(Collection<? extends E> c)`：使用包含数据元素的指定集合来初始化数组缓冲区，数据缓冲区中的元素存储顺序为集合元素迭代器返回的数据元素的顺序。
 
-## 基本运算
+### 基本运算
 
-### 求表长
+#### 求表长
 
 每个 `ArrayList` 实例包含实例字段 `size` 表示该实例所存储的数据元素的数量，因此求表长的时间复杂度为 `O(1)`。
 
@@ -104,7 +96,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 
 
-### 增加新元素
+#### 增加新元素
 
 表尾插入新元素：数组的索引可以直接定位到要插入的位置，因此在表尾插入单个新元素的时间复杂度为**O(1)**。
 
@@ -132,7 +124,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 批量插入新元素 `addAll(Collection<? extends E> c)` 和在指定位置批量插入新元素 `addAll(int index, Collection<? extends E> c)` 分析同上。
 
-#### 增加新元素-扩充表空间
+##### 增加新元素-扩充表空间
 
 在上面的增加新元素的操作中，首先都要判断容纳数据元素的数组缓冲区的空间是否足够，如果不能满足新增元素的需求，都需要创建新的数组缓冲区，容量为原数组缓冲区容量的 **1.5** 倍，然后拷贝原数据元素到新的数组缓冲区中，最后在指定位置增加新元素。扩充表空间的逻辑如下：
 
@@ -152,7 +144,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-### 读取元素
+#### 读取元素
 
 按索引读取元素：直接操作底层的数组缓冲区，使用索引直接获取数据，时间复杂度为**O(1)**。
 
@@ -203,7 +195,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-### 删除元素
+#### 删除元素
 
 删除指定索引的数据元素：需要将指定索引后数据元素，依次向前移动1个位置，元素**平均移动次数为(n-1)/2**，时间复杂度为**O(n)**。Java方法采用 `native` 方法 `System.arraycopy` 实现元素的移动，且移动完成后，将最后一个位置的元素设置为 `null` 值，以便垃圾回收器可以回收该空间。
 
@@ -254,13 +246,13 @@ public class ArrayList<E> extends AbstractList<E>
     }
 ```
 
-## 嵌套类
+### 嵌套类
 
-### 私有迭代器类 Itr
+#### 私有迭代器类 Itr
 
 私有嵌套类 `Itr` 实现接口 `Iterator<E>`，是 `AbstractList.Itr` 的优化版本。
 
-#### 基本定义和字段
+##### 基本定义和字段
 
 ```java
     private class Itr implements Iterator<E> {
@@ -276,11 +268,11 @@ public class ArrayList<E> extends AbstractList<E>
 - `lastRet（int类型）`：迭代器返回的最后一个元素的索引，**-1** 表示刚调用了一次 `Itr` 实例的 `remove()` 方法；
 - `expectedModCount（int类型）`：存储`Itr`实例化时 `modCount` 的值，用于判断外围类 `ArrayList` 实例是否发生结构性的更改。在重载 `remove` 方法中删除元素后，会重新设置 `expectedModCount` 的值为外围类实例 `ArrayList` 当前 `modCount` 的值。
 
-### 私有列表迭代器类 ListItr
+#### 私有列表迭代器类 ListItr
 
 私有嵌套类 `ListItr` 扩展了私有嵌套类 `Itr`，并实现了接口 `ListIterator<E>`，是 `AbstractList.ListItr` 的优化版本。
 
-#### 基本定义和字段
+##### 基本定义和字段
 
 ```java
     private class ListItr extends Itr implements ListIterator<E> {
@@ -297,11 +289,11 @@ public class ArrayList<E> extends AbstractList<E>
 
 - `ListItr(int index)`：该构造函数会根据传入的参数 `index` 设置字段 `cursor` 的值，指定了要返回的下一个元素的索引。
 
-### 私有子列表类 SubList
+#### 私有子列表类 SubList
 
 私有嵌套类 `SubList` 扩展了抽象类 `AbstractList<E>`，并实现了标记接口 `RandomAccess`。该类实际操作的是传入其构造函数的外围类的实例，它对其外围类进行了包装，相当于一个包装类（wrapper class）。
 
-#### 基本定义和字段
+##### 基本定义和字段
 
 ```java
     private class SubList extends AbstractList<E> implements RandomAccess {
@@ -327,3 +319,72 @@ public class ArrayList<E> extends AbstractList<E>
 - `parentOffset（final int类型）`：父列表实例的开始索引；
 - `offset（final int类型）`： `SubList` 实例操作的偏移量（构造函数传入的参数 `offset + fromIndex` 之和）；
 - `size（int类型）`：`SubList` 实例的大小。
+
+## Vector 类
+
+`Vector` 类实现了可增长的对象数组。像数组一样，它包含可以使用整数索引访问的组件。但是，`Vector` 的大小可以根据需要增加或缩小，以便在创建 `Vector` 后添加和删除数据元素（items）。
+
+`Vector` 实例是同步的（实例方法都倍 `synchronized` 修饰）。如果不需要线程安全实现，建议使用 `ArrayList` 代替 `Vector`。
+
+### 基本定义和字段
+
+```java
+public class Vector<E>
+    extends AbstractList<E>
+    implements List<E>, RandomAccess, Cloneable, java.io.Serializable
+{
+    protected Object[] elementData;
+
+    protected int elementCount;
+
+    protected int capacityIncrement;
+
+    public Vector(int initialCapacity, int capacityIncrement) {
+        super();
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity: "+
+                                               initialCapacity);
+        this.elementData = new Object[initialCapacity];
+        this.capacityIncrement = capacityIncrement;
+    }
+
+    public Vector(int initialCapacity) {
+        this(initialCapacity, 0);
+    }
+
+    public Vector() {
+        this(10);
+    }
+
+    public Vector(Collection<? extends E> c) {
+        elementData = c.toArray();
+        elementCount = elementData.length;
+        // c.toArray might (incorrectly) not return Object[] (see 6260652)
+        if (elementData.getClass() != Object[].class)
+            elementData = Arrays.copyOf(elementData, elementCount, Object[].class);
+    }
+}
+```
+
+实例字段解析：
+
+- `elementData（protected Object[]类型）`：存储向量组件的数组缓冲区。向量的容量是此数组缓冲区的长度，并且至少足以包含所有向量的元素。`Vector` 中最后一个元素后面的任何数组元素都是 `null`。
+- `elementCount（protected int类型）`：该 `Vector` 对象中的有效组件数。组件 `elementData[0]` 到 `elementData[elementCount-1]` 是实际的数据元素。
+- `capacityIncrement（protected int类型）`：当矢量大小超过其容量时，矢量容量自动递增的量。 如果容量增量小于或等于零，则每次需要增长时，矢量的容量加倍。
+
+## ArrayList 和 Vector 比较
+
+相同点：
+
+- 底层都采用数组实现的顺序表。
+
+区别：
+
+- 扩容方法 `grow() `，`ArrayList` 通过位运算进行扩容，容量扩充为原来的 1.5 倍，而 `Vector` 则通过增长系数（创建时设置，如果增持系数小于等于 0，则容量扩充为原来的 2 倍）；
+- `Vector` 对象是同步的，几乎所有的实例方法都被 `synchronized`关键字修饰，对这些方法的调用是线程安全的。
+
+
+## 参考
+
+- [Java 集合系列1、细思极恐之ArrayList](https://juejin.cn/post/6844903601928667149)
+- [Java 集合系列2、百密一疏之Vector](https://juejin.cn/post/6844903602289377288)
