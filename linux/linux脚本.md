@@ -89,7 +89,7 @@ Linux系统将每个对象当做文件处理。这包括输入和输出进程。
 #### /dev/null
 有时候，你可能不想显示脚本的输出。这在将脚本作为后台进程运行时很常见。要解决这个问题，可以将`STDERR`重定向到一个叫作`null`文件的特殊文件。`shell`输出到`null`文件的任何数据都不会保存，全部都被丢掉了。在Linux系统上null文件的标准位置是`/dev/null`。你重定向到该位置的任何数据都会被丢掉，不会显示。
 
-`/dev/null` 表示空设备文件。`commond 1 > /dev/null`表示执行command命令产生了标准输出`stdout`（用1表示），重定向到`/dev/null`的设备文件中。
+`/dev/null` 表示空设备文件。`commond 1> /dev/null`表示执行command命令产生了标准输出`stdout`（用1表示），重定向到`/dev/null`的设备文件中。
 
 `/dev/null`理解为`/dev`路径下的空文件，该命令将command命令的标准输出输出到空文件中。
 
