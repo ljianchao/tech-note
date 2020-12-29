@@ -61,7 +61,8 @@
 
 ## python
 
-- [清华大学加速镜像](https://pypi.tuna.tsinghua.edu.cn/simple/)
+- [清华大学pypi加速镜像](https://pypi.tuna.tsinghua.edu.cn/simple/)
+- [阿里云pypi加速镜像](https://mirrors.aliyun.com/pypi/simple/)
 
 ## Magnet
 
