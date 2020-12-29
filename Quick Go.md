@@ -59,6 +59,10 @@
 - [github国内代理](https://github.strcpy.cn/)
 - [语雀加速](https://www.yuque.com/fvxoda)
 
+## python
+
+- [清华大学加速镜像](https://pypi.tuna.tsinghua.edu.cn/simple/)
+
 ## Magnet
 
 - [虚名寻](https://www.xumingxun.com/bt-search)
