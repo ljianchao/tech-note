@@ -150,14 +150,14 @@ job1:
   only:
     - master
   script:
-    - sonar-scanner -Dsonar.branch.name=master -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH
+    - sonar-scanner -Dsonar.branch.name=master -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH -Dsonar.scm.disabled=true
 
 job2:
   stage: test
   only:
     - dev
   script:
-    - sonar-scanner -Dsonar.branch.name=dev -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH
+    - sonar-scanner -Dsonar.branch.name=dev -Dsonar.exclusions=$SONAR_EXCLUSIONS -Dsonar.projectKey=$CI_PROJECT_NAME -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.sources=.  -Dsonar.java.binaries=. -Dsonar.java.source=8 -Dsonar.analysis.CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME -Dsonar.analysis.GITLAB_USER_EMAIL=$GITLAB_USER_EMAIL -Dsonar.analysis.GITLAB_USER_NAME=$GITLAB_USER_NAME -Dsonar.analysis.CI_PROJECT_PATH=$CI_PROJECT_PATH -Dsonar.scm.disabled=true
 
 ```
 
