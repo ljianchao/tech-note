@@ -172,3 +172,4 @@ job2:
 - [gitlab runner命令](https://blog.csdn.net/qq_34206560/article/details/88827395)
 - [SonarQube 之 gitlab-plugin 配合 gitlab-ci 完成每次 commit 代码检测](https://blog.csdn.net/aixiaoyang168/article/details/78115646)
 - [GitLab CI/CD environment variables](https://docs.gitlab.com/ee/ci/variables/#creating-a-custom-environment-variable)
+- [单元测试以及代码覆盖率——Jenkins集成SonarQube、JaCoCo、Junit使用问题汇总](https://ningyu1.github.io/site/post/77-jenkins-sonarqube-jacoco-junit/)
