@@ -19,7 +19,7 @@ Java语言支持四种类型：接口（包括注释）、类（包括enum）、
 
 尽管 `Object` 是一个具体类，但设计它主要是为了扩展。它所有的非 `final` 方法（equals、hashCode、toString、clone 和 finalize）都有明确的**通用约定（general contract）**，因为它们设计成是要被覆盖（override）的。
 
-### 3.1 覆盖 equals 时请遵守通用约定
+### 3.1 覆盖 equals 时请遵守通用约定 - Obey the general contract when overriding equals
 
 如果满足了以下任何一个条件，可以不覆盖 `equals` 方法：
 
@@ -64,6 +64,25 @@ Java语言支持四种类型：接口（包括注释）、类（包括enum）、
 - 不要将 `equals` 声明中的 `Object` 对象替换为其他的类型。可能会造成没有覆盖（override） `Object.equals`，相反，可能重载（overload）了 `Object.equals`。
 
 使用 Google 开源的 AutoValue 框架代替手工编写和测试 `equals` 及 `hashCode`，它会自动替你生成这些方法，通过类中的单个注解就能触发。
+
+### 3.2 覆盖 equals 时总要覆盖 hashCode - Always override hasCode when you override equals
+
+在每个覆盖 `equals` 方法的类中，都必须覆盖 `hashCode` 方法。如果不这样做的话，就会违反 `hashCode` 的通用约定，从而导致该类**无法结合所有基于散列的集合**一起正常运作，这类集合包括 `HashMap` 和 `HashSet`。下面是约定的内容，摘自 `Object` 规范：
+
+- 在应用程序的执行期间，只要对象的 `equals` 方法的比较操作所用到的信息没有被修改，那么对同一个对象的多次调用，`hashCode` 方法都必须始终返回同一个值。在一个应用程序与另一个程序的执行过程中，执行 `hashCode` 方法所返回的值可以不一致。
+- 如果两个对象根据 `equals(Object)` 方法比较是相等的，那么调用这两个对象中的 `hashCode` 方法都必须产出同样的整数结果。
+- 如果这两个对象根据 `equals(Object)` 方法比较是不相等的，那么调用这两个对象中的 `hashCode` 方法，则不一定要求 `hashCode` 方法必须产生不同的结果。但是程序员应该知道，给不相等的对象产生截然不同的整数结果，有可能提高散列表（hash table）的性能。 
+
+理想情况下，散列函数应该把集合中不相等的实例均匀地分布到所有可能的 int 值上。要想完全达到这种理想的情形是非常困难的。幸运的是，相对接近这种理想情形则并不太困难。下面给出一种简单的解决办法：
+
+- 1.声明一个 int 变量并命名为 `result`，将它初始化为对象中第一个关键域的散列码 `c`，如步骤 2.a 中计算所示（关键域是指影响 equals 比较的域）。
+- 2.对象中剩下的每一个关键域 `f` 都完成如下步骤：
+    - a. 为该域计算 int 类型的散列码 `c`：
+        - I. 如果该域是基本类型，则计算 `Type.hashCode(f)`，这里的 `Type` 是装箱基本类型的类，与 `f` 的类型相对应。
+        - II. 如果该域是一个对象引用，并且该类的 `equals` 方法通过递归地调用 `equals` 的方式来比较这个域，则同样为这个域递归地调用 `hashCode`。如果需要更复杂的比较，则为这个域计算一个“范式”（canonical representation），然后针对这个范式调用 `hashCode`。如果这个域的值为 `null`，则返回 `0`（或者其他某个常数，但通常是0）。
+        - III. 如果该域是一个数组，则要把每一个元素当作单独的域来处理。也就是说，递归地应用上述规则，对每个重要的元素计算一个散列码，然后根据步骤 2.b 中的做法把这些散列值组合起来。如果数组域中没有重要的元素，可以使用一个常量，但最后不要用 `0`。如果数组域中的所有元素都很重要，可以使用 `Arrays.hashCode` 方法。
+    - b. 按照下面的公式，把步骤 2.a 中计算得到的散列码 `c` 合并到 `result` 中：`result = 31 * result + c`。
+- 3.返回 `result`。
 
 ## 第4章 类和接口
 
