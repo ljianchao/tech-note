@@ -44,6 +44,15 @@ WHERE table_schema = 'youlin-health-school';
 
 # 账号操作
 
+## 账号查询
+
+```sql
+   # 只显示账号信息
+   SELECT DISTINCT CONCAT('User: ''',USER,'''@''',HOST,''';') AS QUERY FROM mysql.user;
+   # 查询所有用户和权限信息
+   SELECT * FROM `mysql`.`user`;
+```
+
 ## 创建账号
 
 ```sql
@@ -57,6 +66,20 @@ WHERE table_schema = 'youlin-health-school';
 
 ## 授权
 
+授予语法：
+
+```sql
+   GRANT 权限1, 权限2, …, 权限n ON 数据库名称.表名称 TO 用户名@用户地址 WITH GRANT OPTION;
+```
+
+权限种类包括：select, insert, update, delete, create, drop, index, alter, grant, references, reload, shutdown, process, file等 14 个权限。
+
+当具体权限被 `all privileges` 或者 `all` 代替，表示赋予用户全部权限。
+
+当 `数据库名称.表名 `称被 `*.*` 代替，表示赋予用户操作服务器上所有数据库所有表的权限。
+
+用户地址可以是 localhost，也可以是ip地址、机器名字、域名。也可以用 '%' 表示从任何地址连接。
+
 ```sql
    -- 查询某用户的权限
    SHOW GRANTS FOR yltapi;
@@ -66,6 +89,9 @@ WHERE table_schema = 'youlin-health-school';
 
    -- 授权CURD权限
    GRANT SELECT, INSERT, UPDATE, DELETE ON `youlin_app`.* TO 'yltapi'@'%' WITH GRANT OPTION;
+
+   -- 刷新权限
+   flush privileges;
 ```
 
 # 管理操作
