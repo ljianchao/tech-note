@@ -191,6 +191,58 @@ public static Yum newInstance(Yum yum) { ... };
 
 总之，复制功能最好由构造器或者工厂提供。这条规则最绝对的例外是数组，最好利用 `clone` 方法复制数组。
 
+### 3.5 考虑实现 Comparable 接口 - Consider implementing Comparable
+
+`compareTo` 方法并没有在 `Object` 类中声明。相反，它是 `Comparable` 接口中的唯一的方法。`compareTo` 方法不但允许进行简单的**等同性比较**，而且允许**执行顺序比较**，除此之外，它与 `Object` 的 `equals` 方法具有相似的特征，它还是个泛型（generic）。类实现了 `Comparable` 接口，就表明它的实例具有内在的**排序关系（natural ordering）**。为实现 `Comparable` 接口的对象数组进行排序就这么简单：
+
+```java
+    Arrays.sort(a);
+```
+
+对存储在集合中的 `Comparable` 对象进行搜索、计算极限值以及自动维护也同样简单。
+
+一旦类实现了 `Comparable` 接口，它就可以跟许多泛型算法（generic algorithm）以及依赖于该接口的集合实现（collection implementation）进行协作。事实上，Java 平台类库中的**所有值类（value class），以及所有的枚举类型** 都实现了 `Comparable` 接口。如果你正在编写一个值类，它具有非常明显的**内在排序关系**，比如字符排序、按数值排序或者按年代排序，那你就应该坚决考虑实现 `Comparable` 接口。
+
+```java
+public interface Comparable<T> {
+    public int compareTo(T o);
+}
+```
+
+`compareTo` 方法的通用约定与 `equals` 方法的约定相似：
+
+将这个对象与指定的对象进行比较。当该对象小于、等于或大于指定对象的时候，分别返回一个负整数、零或者正整数。如果由于指定对象的类型而无法与该对象进行比较，则抛出 `ClassCastException` 异常。
+
+在下面的说明中，符号 `sgn(expression)` 表示数学中的 `signum` 函数，它根据表达式（expression）的值为负值、零和正值，分别返回 -1、0 或 1。
+
+- 实现者必须确保所有的 x 和 y 都满足 `sgn(x.compareTo(y)) == -sgn(y.compareTo(x))`。（这也暗示着，当且仅当 `y.compareTo(x)` 抛出异常时，`x.compareTo(y)` 才必须抛出异常。）
+
+- 实现者还必须确保这个关系是可传递的：`(x.compareTo(y) > 0 && y.compareTo(z) > 0)` 暗示着 `x.compareTo(z) > 0`。
+
+- 最后，实现者必须确保 `x.compareTo(y) == 0` 暗示着所有的 z 都满足 `sgn(x.compareTo(z)) == sgn(y.compareTo(z))`。
+
+- 强烈建议 `(x.compareTo(y) == 0) == (x.equals(y))`，但这并非绝对必要。一般说来，任何实现了 `Comparable` 接口的类，若违反了这个条件，都应该明确予以说明。推荐使用这样的说法：“注意：该类具有内在的排序功能，但是与 equals 不一致”。
+
+就好像违反了 `hashCode` 约定的类会破坏其他依赖于散列的类一样，违反 `compareTo` 约定的类也会破坏其他依赖于**比较关系** 的类。依赖于比较关系的类包括**有序集合类 TreeSet 和 TreeMap**，以及**工具类 Colletions 和 Arrays**，它们内部包含有搜索和排序算法。
+
+如果一个类的 `compareTo` 方法施加了一个与 `equals` 方法不一致的顺序关系，它仍然能够正常工作，但是如果一个有序集合（sorted collection）包含了该类的元素，这个集合就可能无法遵守相应集合接口（Collection、Set 或 Map）的通用约定。因为对于这些接口的通用约定是按照 `equals` 方法来定义的，但是**有序集合**使用了由 `compareTo` 方法而不是 `equals` 方法所施加的等同性测试。尽管出现这种情况不会造成灾难性的后果，但是应该有所了解。
+
+例如，`BigDecimal` 类为例，它的 `compareTo` 方法与 `equals` 不一致。如果你创建了一个空的 `HashSet` 实例，并且添加 `new BigDecimal("1.0")` 和 `new BigDecimal("1.00")`，这个集合就包含两个元素，因为新增到集合中的两个 `BigDecimal` 实例，通过 `equals` 方法来比较时它们是不相等的。然而，如果你使用 `TreeSet` 而不是 `HashSet` 来执行同样的过程，集合中将只包含一个元素，因为这两个 `BigDecimal` 实例在通过 `compareTo` 方法进行比较时是相等的。
+
+`compareTo` 方法中域的比较是**顺序** 的比较，而不是等同性的比较。比较对象引用域可以通过递归地调用 `compareTo` 方法来实现。如果一个域没有实现 `Comparable` 接口，或者你需要使用一个非标准的排序关系，就可以使用一个显示的 `Comparator` 来代替。或者编写自己的比较器，或者使用已有的比较器。
+
+在 Java 7 版本中，已经在 Java 的所有装箱基本类型的类中增加了静态的 `compare` 方法。**在 compareTo 方法中使用关系操作符 < 和 > 是非常烦琐的，并且容器出错，因此不再建议使用**。
+
+如果一个类有多个关键域，那么，被什么样的顺序来比较这些域是非常关键的。你必须从最关键的域开始，逐步进行到所有的重要域。如果某个域的比较产生了非零的结果（零代表相等），则整个比较操作结束，并返回该结果。如果最关键的域是相等的，则进一步比较次关键的域，以此类推。如果所有的域都是相等的，则对象就是相等的，并返回零。
+
+在 Java 8 中，`Comparator` 接口配置了一组**比较器构造方法（comparator construction methods）**，使得比较器的构造工作变得非常流畅。之后，按照 `Comparable` 接口的要求，这些比较器可以用来实现一个 `compareTo` 方法。许多程序员都喜欢这种方法的简洁性，虽然它要付出一定的性能成本。
+
+`Comparator` 类具备全套的构造方法。对于基本类型 `long` 和 `double` 都有对应的 `comparingInt` 和 `thenComparingInt`。`int` 版本也可以用于更狭义的整数型类型，例如 `short`。`double` 版本也可以用于 `float`。这样便涵盖了所有的 Java 数字型基本类型。
+
+对象引用类型也有比较器构造方法，静态方法 `comparing` 有两个重载。一个带有键提取器，使用键的内在排序关系。第二个既带有键提取器，还带有要用在被提取的键上的比较器。这个名为 `thenComparing` 的实例方法有三个重载。一个重载只带一个比较器，并用它提供次级顺序。第二个重载只带一个键提取器，并利用键的内在排序关系作为次级顺序。最后一个重载既带有键提取器，又带有要在被提取的键上使用的比较器。
+
+总而言之，每当实现一个对排序敏感的类时，都应该让这个类实现 `Comparable` 接口，以便其实例可以轻松地被分类、搜索，以及用在基于比较的集合中。每当在 `compareTo` 方法的实现中比较域值时，都要避免使用 `<` 和 `>` 操作符，而应该在装箱基本类型的类中使用静态的 `compare` 方法，或者在 `Comparator` 接口中使用比较器构造方法。
+
 ## 第4章 类和接口
 
 类和接口是Java编程语言的核心，它们也是Java语言的基本抽象单元。Java语言提供了许多强大的基本元素，供程序员用来设计类和接口。本章阐述的一些指导原则，可以帮助你更好地利用这些元素，设计出**更加有用、健壮和灵活**的类和接口。
