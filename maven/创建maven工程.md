@@ -12,26 +12,24 @@ mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring -Dpackage=com
 
 ## 创建层级目录项目
 
-创建父目录
+创建父目录：
 
 ```
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring -DinteractiveMode=false
 ```
 
-创建子目录
+进入父目录，删除 `src` 目录，修改 `pom.xml` 文件中的属性 `packaging` 为 `pom`，然后在当前目录下运行以下命令创建子目录：
 
 ```
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-api -Dpackage=com.demo.api -DinteractiveMode=false
 
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-api -Dpackage=com.demo.api
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-common -Dpackage=com.demo.common -DinteractiveMode=false
 
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-common -Dpackage=com.demo.common
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-dao -Dpackage=com.demo.dao -DinteractiveMode=false
 
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-dao -Dpackage=com.demo.dao
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-service -Dpackage=com.demo.service -DinteractiveMode=false
 
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-service -Dpackage=com.demo.service
-
-    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-server -Dpackage=com.demo.server
+    mvn archetype:generate -DgroupId=com.demo -DartifactId=demo-spring-server -Dpackage=com.demo.server -DinteractiveMode=false
 ```
 
 ## 依赖分析
