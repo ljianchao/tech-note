@@ -139,17 +139,19 @@ JDK自带下列工具：
 
 - jps（JVM Process Status Tool），显示指定系统内所有的HotSpot虚拟机进程
 - jcmd，打印Java进程所涉及的基本类、线程和VM信息。
-- jconsole，提供JVM活动的图形化视图，包括线程的使用、类的使用和GC活动。
+- jinfo（Configuration Info for Java），查看JVM的系统属性，可以动态设置一些系统属性。可适用于脚本。
+
+- jstat（JVM Statistics Monitoring Tool），提供GC和类装载活动的信息。可适用于脚本。
 - jhat（JVM Heap Analysis Tool），读取内存堆转储，并有助于分析。这是事后使用的工具。
 - jmap（Memory Map for Java），提供堆转储和其他JVM内存使用的信息。可以适用于脚本，但堆转储必须在事后分析工具中使用。
-- jinfo（Configuration Info for Java），查看JVM的系统属性，可以动态设置一些系统属性。可适用于脚本。
 - jstack（Stack Trace for Java），转储JVM进程的栈信息。可适用于脚本。
-- jstat（JVM Statistics Monitoring Tool），提供GC和类装载活动的信息。可适用于脚本。
+
+- jconsole，提供JVM活动的图形化视图，包括线程的使用、类的使用和GC活动。
 - jvisualvm，监视JVM的GUI工具，可用来剖析运行的应用，分析JVM堆转储（事后活动，虽然jvisualvm也可以实时抓取程序的堆转储）。
 
 ### 基本的VM信息
 
-命令格式：
+jcmd 命令格式：
 
 ```
 Usage: jcmd <pid | main class> <command ...|PerfCounter.print|-f file>
@@ -168,6 +170,8 @@ PerfCounter.print display the counters exposed by this process
 -l  list JVM processes on the local machine                     
 -h  this help 
 ```
+
+jinfo 命令格式：
 
 ```
 Usage:
@@ -196,7 +200,6 @@ jcmd process_id VM.uptime
 
 // 系统属性
 jcmd process_id VM.system_properties
-jinfo -sysprops process_id
 
 // JVM版本
 jcmd process_id VM.version
@@ -216,7 +219,13 @@ java [other_options] -XX:+PrintFlagsFinal -version
 jinfo在检查单个标志时很有用，同时允许程序在执行时更改某个标志的值：
 
 ```
-// 获取进程中所有标志的值
+// 系统属性和VM信息，-sysprops 和 -flags 参数的合集
+jinfo process_id
+
+// 获取系统属性
+jinfo -sysprops process_id
+
+// 获取进程中所有标志的值，包括 Non-default VM flags 类型的值和 Command line 类型的值
 jinfo -flags process_id
 
 // 检查某个标志的值
@@ -275,7 +284,8 @@ Definitions:
                 and <port> is the port number for the rmiregistry on the
                 target host. See the jvmstat documentation for a more complete
                 description of the Virtual Machine Identifier.
-<lines>       Number of samples between header lines.
+<lines>       Number of 
+samples between header lines.
 <interval>    Sampling interval. The following forms are allowed:
                     <n>["ms"|"s"]
                 Where <n> is an integer and the suffix specifies the units as 
