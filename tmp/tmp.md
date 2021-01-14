@@ -45,3 +45,10 @@ Navicat Premium 15破解 https://www.cnblogs.com/kkdaj/p/12794804.html
 - [jenkins离线安装插件的方法(无法访问外网)](https://www.cnblogs.com/yy-cola/p/10162062.html)
 - [jenkins git status code 128](https://www.cnblogs.com/dzblog/p/9449072.html)
 - [Git rebase "unable to create file" "Permission denied" ](https://www.jianshu.com/p/90cfade77963)
+
+## 硬件维修
+
+- [F1A75-V F1A75-V_EVO F1A75-V_PRO点位图](https://www.chinafix.com/thread-895481-1-1.html)
+- [华硕F1A75-V主板用户使用说明书pdf格式](http://www.uzzf.com/soft/94370.html)
+- [主板各个电路检修方法图解](https://wenku.baidu.com/view/42a7431cafaad1f34693daef5ef7ba0d4b736d37.html)
+
