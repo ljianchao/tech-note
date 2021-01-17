@@ -58,6 +58,8 @@
 
 - [github国内代理](https://github.strcpy.cn/)
 - [语雀加速](https://www.yuque.com/fvxoda)
+- [git下载加速](https://github.com/waylau/git-for-win)
+- [git阿里云下载加速](https://npm.taobao.org/mirrors/git-for-windows/)
 
 ## python
 
