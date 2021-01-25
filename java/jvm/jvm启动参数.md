@@ -69,14 +69,25 @@ jdk1.7之后的命令：
 
 ### 设置堆内存
 
+`-Xms` 参数设置初始化堆内存 `InitialHeapSize` 的值，`-Xmx` 参数设置最大堆内存 `MaxHeapSize` 的值。默认使用 `-XX:+UseParallelGC` 参数设置垃圾回收器的组合为 `Parallel Scavenge + Parallel Old`。
+
+启动命令：
+
 ```shell
     java -Xms1024m -Xmx1024m -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
 ```
 
-使用命令 `jmap -heap <pid>` 查看内存分配：
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
 
 ```
-Attaching to process ID 202318, please wait...
+217430:
+-XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357564416 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=357564416 -XX:OldSize=716177408 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseParallelGC
+```
+
+使用命令 `jmap -heap <pid>` 查看堆内存情况：
+
+```
+Attaching to process ID 217430, please wait...
 Debugger attached successfully.
 Server compiler detected.
 JVM version is 25.131-b11
@@ -102,9 +113,9 @@ Heap Usage:
 PS Young Generation
 Eden Space:
    capacity = 268435456 (256.0MB)
-   used     = 165777344 (158.09759521484375MB)
-   free     = 102658112 (97.90240478515625MB)
-   61.75687313079834% used
+   used     = 165211456 (157.55792236328125MB)
+   free     = 103224000 (98.44207763671875MB)
+   61.54606342315674% used
 From Space:
    capacity = 44564480 (42.5MB)
    used     = 0 (0.0MB)
@@ -117,13 +128,325 @@ To Space:
    0.0% used
 PS Old Generation
    capacity = 716177408 (683.0MB)
-   used     = 5836704 (5.566314697265625MB)
-   free     = 710340704 (677.4336853027344MB)
-   0.8149801899364019% used
+   used     = 5798864 (5.5302276611328125MB)
+   free     = 710378544 (677.4697723388672MB)
+   0.809696582889138% used
 
-10936 interned Strings occupying 928112 bytes.
+10932 interned Strings occupying 928984 bytes.
+```
+
+## 垃圾收集器设置
+
+### 常用垃圾回收器组合参数设定
+
+- `-XX:+UseSerialGC`: Serial New(DefNew) + SerialOld .
+- `-XX:+UseConcMarkSweepGC`: ParNew + CMS + SerialOld（后备预案）
+- `-XX:+UseParallelGC`（默认）: Parallel Scavenge + Parallel Old(1.7 & 1.8默认)
+- `-XX:+UseParallelOldGC`: Parallel Scavenge + Pallel Old（该参数在JDK1.5之后已无用）
+- `-XX:+UseG1GC`: G1
+
+### 查看JVM默认垃圾回收器方法
+
+使用以下命令查看：
+
+```
+    jcmd <pid> VM.flags
+```
+
+输出内容如下：
+
+```
+<pid>:
+-XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357564416 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=357564416 -XX:OldSize=716177408 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseParallelGC
+```
+
+### SericalGC
+
+使用参数 `-XX:+UseSerialGC` 开启 Serial 收集器 和 Serial Old 收集器组合。
+
+启动命令：
+
+```
+   java -Xms1024m -Xmx1024m -XX:+UseSerialGC -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
+
+```
+216506:
+-XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357892096 -XX:MinHeapDeltaBytes=196608 -XX:NewSize=357892096 -XX:OldSize=715849728 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseSerialGC
+```
+
+使用命令 `jmap -heap <pid>` 查看堆内存情况：
+
+```
+Attaching to process ID 216506, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.131-b11
+
+using thread-local object allocation.
+Mark Sweep Compact GC
+
+Heap Configuration:
+   MinHeapFreeRatio         = 40
+   MaxHeapFreeRatio         = 70
+   MaxHeapSize              = 1073741824 (1024.0MB)
+   NewSize                  = 357892096 (341.3125MB)
+   MaxNewSize               = 357892096 (341.3125MB)
+   OldSize                  = 715849728 (682.6875MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 0 (0.0MB)
+
+Heap Usage:
+New Generation (Eden + 1 Survivor Space):
+   capacity = 322109440 (307.1875MB)
+   used     = 166651480 (158.93123626708984MB)
+   free     = 155457960 (148.25626373291016MB)
+   51.73753367799466% used
+Eden Space:
+   capacity = 286326784 (273.0625MB)
+   used     = 166651480 (158.93123626708984MB)
+   free     = 119675304 (114.13126373291016MB)
+   58.203245142445354% used
+From Space:
+   capacity = 35782656 (34.125MB)
+   used     = 0 (0.0MB)
+   free     = 35782656 (34.125MB)
+   0.0% used
+To Space:
+   capacity = 35782656 (34.125MB)
+   used     = 0 (0.0MB)
+   free     = 35782656 (34.125MB)
+   0.0% used
+tenured generation:
+   capacity = 715849728 (682.6875MB)
+   used     = 5467960 (5.214653015136719MB)
+   free     = 710381768 (677.4728469848633MB)
+   0.7638418771600064% used
+
+10961 interned Strings occupying 930880 bytes.
+```
+
+### ParallelGC
+
+新生代 `NewSize` 和 老年代 `OldSize` 的默认大小比例为 `1:2`。
+
+使用参数 `-XX:+UseParallelGC` 开启 Parallel Scavenge 收集器和 Parallel Old 收集器组合，JDK 1.7 （包括）之后默认采用Parallel Scavenge 收集器作为新生代收集器。不能和 CMS 收集器配合使用。
+
+启动命令：
+
+```shell
+    java -Xms1024m -Xmx1024m -XX:+UseParallelGC -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
+
+```
+217430:
+-XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357564416 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=357564416 -XX:OldSize=716177408 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseParallelGC
+```
+
+使用命令 `jmap -heap <pid>` 查看堆内存情况：
+
+```
+Attaching to process ID 217430, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.131-b11
+
+using thread-local object allocation.
+Parallel GC with 8 thread(s)
+
+Heap Configuration:
+   MinHeapFreeRatio         = 0
+   MaxHeapFreeRatio         = 100
+   MaxHeapSize              = 1073741824 (1024.0MB)
+   NewSize                  = 357564416 (341.0MB)
+   MaxNewSize               = 357564416 (341.0MB)
+   OldSize                  = 716177408 (683.0MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 0 (0.0MB)
+
+Heap Usage:
+PS Young Generation
+Eden Space:
+   capacity = 268435456 (256.0MB)
+   used     = 165211456 (157.55792236328125MB)
+   free     = 103224000 (98.44207763671875MB)
+   61.54606342315674% used
+From Space:
+   capacity = 44564480 (42.5MB)
+   used     = 0 (0.0MB)
+   free     = 44564480 (42.5MB)
+   0.0% used
+To Space:
+   capacity = 44564480 (42.5MB)
+   used     = 0 (0.0MB)
+   free     = 44564480 (42.5MB)
+   0.0% used
+PS Old Generation
+   capacity = 716177408 (683.0MB)
+   used     = 5798864 (5.5302276611328125MB)
+   free     = 710378544 (677.4697723388672MB)
+   0.809696582889138% used
+
+10932 interned Strings occupying 928984 bytes.
+```
+
+### ConcurrentMarkSweepGC
+
+使用参数 `-XX:+UseConcMarkSweepGC` （默认会增加 `-XX:+UseParNewGC` 参数）开启 ParNew 收集器和 CMS 收集器组合。
+
+启动命令：
+
+```shell
+    java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
+
+```
+217687:
+-XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357892096 -XX:MaxTenuringThreshold=6 -XX:MinHeapDeltaBytes=196608 -XX:NewSize=357892096 -XX:OldPLABSize=16 -XX:OldSize=715849728 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseFastUnorderedTimeStamps -XX:+UseParNewGC
+```
+
+使用命令 `jmap -heap <pid>` 查看堆内存情况：
+
+```
+Attaching to process ID 217687, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.131-b11
+
+using parallel threads in the new generation.
+using thread-local object allocation.
+Concurrent Mark-Sweep GC
+
+Heap Configuration:
+   MinHeapFreeRatio         = 40
+   MaxHeapFreeRatio         = 70
+   MaxHeapSize              = 1073741824 (1024.0MB)
+   NewSize                  = 357892096 (341.3125MB)
+   MaxNewSize               = 357892096 (341.3125MB)
+   OldSize                  = 715849728 (682.6875MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 0 (0.0MB)
+
+Heap Usage:
+New Generation (Eden + 1 Survivor Space):
+   capacity = 322109440 (307.1875MB)
+   used     = 189306176 (180.53643798828125MB)
+   free     = 132803264 (126.65106201171875MB)
+   58.770763129450664% used
+Eden Space:
+   capacity = 286326784 (273.0625MB)
+   used     = 180949672 (172.56705474853516MB)
+   free     = 105377112 (100.49544525146484MB)
+   63.196907209351394% used
+From Space:
+   capacity = 35782656 (34.125MB)
+   used     = 8356504 (7.969383239746094MB)
+   free     = 27426152 (26.155616760253906MB)
+   23.353503999255953% used
+To Space:
+   capacity = 35782656 (34.125MB)
+   used     = 0 (0.0MB)
+   free     = 35782656 (34.125MB)
+   0.0% used
+concurrent mark-sweep generation:
+   capacity = 715849728 (682.6875MB)
+   used     = 0 (0.0MB)
+   free     = 715849728 (682.6875MB)
+   0.0% used
+
+10988 interned Strings occupying 932928 bytes.
+```
+
+### G1GC
+
+启动命令：
+
+```shell
+    java -Xms1024m -Xmx1024m -XX:+UseG1GC -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
+
+```
+217942:
+-XX:CICompilerCount=4 -XX:ConcGCThreads=2 -XX:G1HeapRegionSize=1048576 -XX:InitialHeapSize=1073741824 -XX:MarkStackSize=4194304 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=643825664 -XX:MinHeapDeltaBytes=1048576 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseG1GC 
+```
+
+使用命令 `jmap -heap <pid>` 查看堆内存情况：
+
+```
+Attaching to process ID 217942, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 25.131-b11
+
+using thread-local object allocation.
+Garbage-First (G1) GC with 8 thread(s)
+
+Heap Configuration:
+   MinHeapFreeRatio         = 40
+   MaxHeapFreeRatio         = 70
+   MaxHeapSize              = 1073741824 (1024.0MB)
+   NewSize                  = 1363144 (1.2999954223632812MB)
+   MaxNewSize               = 643825664 (614.0MB)
+   OldSize                  = 5452592 (5.1999969482421875MB)
+   NewRatio                 = 2
+   SurvivorRatio            = 8
+   MetaspaceSize            = 21807104 (20.796875MB)
+   CompressedClassSpaceSize = 1073741824 (1024.0MB)
+   MaxMetaspaceSize         = 17592186044415 MB
+   G1HeapRegionSize         = 1048576 (1.0MB)
+
+Heap Usage:
+G1 Heap:
+   regions  = 1024
+   capacity = 1073741824 (1024.0MB)
+   used     = 159383536 (151.99998474121094MB)
+   free     = 914358288 (872.0000152587891MB)
+   14.84374850988388% used
+G1 Young Generation:
+Eden Space:
+   regions  = 140
+   capacity = 506462208 (483.0MB)
+   used     = 146800640 (140.0MB)
+   free     = 359661568 (343.0MB)
+   28.985507246376812% used
+Survivor Space:
+   regions  = 12
+   capacity = 12582912 (12.0MB)
+   used     = 12582912 (12.0MB)
+   free     = 0 (0.0MB)
+   100.0% used
+G1 Old Generation:
+   regions  = 0
+   capacity = 554696704 (529.0MB)
+   used     = 0 (0.0MB)
+   free     = 554696704 (529.0MB)
+   0.0% used
+
+10921 interned Strings occupying 925744 bytes.
 ```
 
 ## 参考
 
 - [Java - jmx远程调优](https://www.jianshu.com/p/923580d3a5a2)
+- [JVM的server模式和client模式](https://blog.csdn.net/qq_26545305/article/details/70241939)
+- [JVM调优实战一（Parallel + ParallelOld）](https://blog.csdn.net/bch1991/article/details/109458333)
