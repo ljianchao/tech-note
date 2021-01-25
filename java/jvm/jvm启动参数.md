@@ -139,13 +139,14 @@ PS Old Generation
 
 ### 常用垃圾回收器组合参数设定
 
-- `-XX:+UseSerialGC`: Serial New(DefNew) + SerialOld .
-- `-XX:+UseConcMarkSweepGC`: ParNew + CMS + SerialOld（后备预案）
+- `-XX:+UseSerialGC`: Serial New(DefNew) + SerialOld。
+- `-XX:+UseParNewGC`：ParNew + Serial Old（该参数在 JDK 9 后不再支持）
+- `-XX:+UseConcMarkSweepGC`: ParNew + CMS + Serial Old（后备预案）
 - `-XX:+UseParallelGC`（默认）: Parallel Scavenge + Parallel Old(1.7 & 1.8默认)
-- `-XX:+UseParallelOldGC`: Parallel Scavenge + Pallel Old（该参数在JDK1.5之后已无用）
+- `-XX:+UseParallelOldGC`: Parallel Scavenge + Pallel Old（该参数在 JDK 5 之后已无用）
 - `-XX:+UseG1GC`: G1
 
-### 查看JVM默认垃圾回收器方法
+### 查看 JVM 默认垃圾回收器方法
 
 使用以下命令查看：
 
@@ -159,6 +160,31 @@ PS Old Generation
 <pid>:
 -XX:CICompilerCount=4 -XX:InitialHeapSize=1073741824 -XX:MaxHeapSize=1073741824 -XX:MaxNewSize=357564416 -XX:MinHeapDeltaBytes=524288 -XX:NewSize=357564416 -XX:OldSize=716177408 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseFastUnorderedTimeStamps -XX:+UseParallelGC
 ```
+
+### 查看某个 flag 的值
+
+使用如下命令查看：
+
+```
+    jcmd <pid> VM.flags -all | grep <flag>
+```
+
+### 设置 GC 日志
+
+使用如下命令设置：
+
+```
+java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=92 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=logs/heapDump-%t.hprof -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+- `-XX:+HeapDumpOnOutOfMemoryError`：让虚拟机在出现内存溢出异常的时候 Dump 出当前的内存堆转储快照以便进行事后分析。
+- `-XX:HeapDumpPath=logs/heapDump-%t.hprof`：指定 dump 文件的路径，目录路径必须存在。
+- `-Xloggc:logs/gc-%t.log`：指定 GC 日志的输入路径。
+- `-XX:+PrintGCDateStamps`：输出 GC 的触发时间。
+- `-XX:+PrintGC` 和 `-verbose:gc`：查看 GC 基本信息，会显示容量的变化。
+- `-XX:+PrintGCDetails`：查看 GC 详细信息。
+- `-XX:+PrintHeapAtGC`：查看 GC 前后的堆、方法区可用容量的变化。
+- `-XX:+PrintGCApplicationStoppedTime`：查看 GC 过程中用户线程并发时间以及停顿时间。
 
 ### SericalGC
 
@@ -238,6 +264,13 @@ tenured generation:
 
 使用参数 `-XX:+UseParallelGC` 开启 Parallel Scavenge 收集器和 Parallel Old 收集器组合，JDK 1.7 （包括）之后默认采用Parallel Scavenge 收集器作为新生代收集器。不能和 CMS 收集器配合使用。
 
+Parallel Scavenge 收集器提供了两个参数用于精确控制吞吐量：
+
+- `-XX:MaxGCPauseMillis`：控制最大收集停顿时间。参数允许的值是一个大于 0 的毫秒数，收集器将尽力保证内存回收花费的时间不超过用户设定值。不过大家不要异想天开地认为如果把这个参数的值设置得更小一点就能使得系统的垃圾收集速度变得更快，**垃圾收集停顿时间缩短是以牺牲吞吐量和新生代空间为代价换取的**：系统把新生代调得小一些，收集 300MB 新生代肯定比收集 500M B快，但这也直接导致垃圾收集发生得**更频繁**，原来 10 秒收集一次、每次停顿 100 毫秒，现在变成 5 秒收集一次、每次停顿 70 毫秒。停顿时间的确在下降，但吞吐量也降下来了。
+- `-XX:GCTimeRatio`：直接设置吞吐量大小。参数的值则应当是一个大于 0 小于 100 的整数，也就是垃圾收集时间占总时间的比率，相当于**吞吐量的倒数**。譬如把此参数设置为 19 ，那允许的最大垃圾收集时间就占总时间的 5%（即1/(1+19)），默认值为 99，即允许最大 1%（即1/(1+99)）的垃圾收集时间。
+
+使用参数 `-XX:+UseAdaptiveSizePolicy` 开启 Parallel Scavenge 收集器的自适应调节策略（默认是开启的）。
+
 启动命令：
 
 ```shell
@@ -306,10 +339,16 @@ PS Old Generation
 
 使用参数 `-XX:+UseConcMarkSweepGC` （默认会增加 `-XX:+UseParNewGC` 参数）开启 ParNew 收集器和 CMS 收集器组合。
 
+参数 `-XX:CMSInitiatingOccupancyFraction` 的值控制在老年代达到指定的比例后触发CMS 收集器进行垃圾回收（JDK 8 默认值为 -1，是否占比 92% ?）。
+
+开关参数 `-XX:+UseCMSCompactAtFullCollection` （默认是开启的，此参数从 JDK 9 开始废弃）用于在 CMS 收集器不得不进行 `Full GC` 时开启内存碎片的合并整理过程。
+
+参数 `-XX:CMSFullGCsBeforeCompaction` （此参数从 JDK 9 开始废弃）的作用是要求 CMS 收集器在执行过若干次（数值由参数决定）不整理空间的 `Full GC` 之后，下一次进入 `Full GC` 前会先进行碎片整理（默认值为 0， 表示每次进入 Full GC 时都进行碎片整理）。
+
 启动命令：
 
 ```shell
-    java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+    java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
 ```
 
 使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
@@ -450,3 +489,6 @@ G1 Old Generation:
 - [Java - jmx远程调优](https://www.jianshu.com/p/923580d3a5a2)
 - [JVM的server模式和client模式](https://blog.csdn.net/qq_26545305/article/details/70241939)
 - [JVM调优实战一（Parallel + ParallelOld）](https://blog.csdn.net/bch1991/article/details/109458333)
+- [为什么不推荐启用UseGCLogFileRotation来记录GC日志？](https://blog.csdn.net/goldenfish1919/article/details/93997132)
+- [Java如何生成Heap Dump及OOM问题排查](https://www.jianshu.com/p/91ee6476848c)
+- [Heap堆分析（堆转储、堆分析）](https://www.cnblogs.com/duanxz/p/8510623.html)
