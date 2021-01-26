@@ -69,12 +69,19 @@ jdk1.7之后的命令：
 
 ### 设置堆内存
 
-`-Xms` 参数设置初始化堆内存 `InitialHeapSize` 的值，`-Xmx` 参数设置最大堆内存 `MaxHeapSize` 的值。默认使用 `-XX:+UseParallelGC` 参数设置垃圾回收器的组合为 `Parallel Scavenge + Parallel Old`。
+- `-Xms` 参数设置初始化堆内存 `InitialHeapSize` 的值，`-Xmx` 参数设置最大堆内存 `MaxHeapSize` 的值。默认使用 `-XX:+UseParallelGC` 参数设置垃圾回收器的组合为 `Parallel Scavenge + Parallel Old`。
+- `-Xmn` 参数用于设置新生代的大小。设置一个较大的新生代会减少老年代的大小，这个参数对系统性能以及 GC 行为有很大的影响。新生代的大小一般设置为整个堆空间的 1/4 到 1/3 左右。设置 `-Xmn` 的效果等同于设置了相同的 `-XX:NewSize` （新生代的初始大小）和 `-XX:MaxNewSize` （新生代的最大值）。
+- `-XX:MinHeapFreeRatio`：设置堆空间的最小空闲比例。当堆空间的空闲内存小于这个数值时，JVM 便会扩展堆空间。
+- `-XX:MaxHeapFreeRatio`：设置堆空间的最大空闲比例。当堆空间的空闲内存大于这个数值时，便会压缩堆空间，得到一个较小的堆。
+- `-XX:NewSize`：设置新生代的大小。
+- `-XX:NewRatio`：设置老年代与新生代的比例，它等于老年代大小除以新生代大小。
+- `-XX:SurviorRatio`：新生代中 eden 区与 survior 区的比例。
+- `-XX:TargetSurviorRatio`：设置 survior 区的可使用率。当 survior 区的空间使用率达到这个数值时，会将对象送入老年代。
 
 启动命令：
 
 ```shell
-    java -Xms1024m -Xmx1024m -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+   java -Xms1024m -Xmx1024m -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
 ```
 
 使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
@@ -135,6 +142,33 @@ PS Old Generation
 10932 interned Strings occupying 928984 bytes.
 ```
 
+### 设置栈大小
+
+参数 `-Xss` 设置栈容量 `-XX:ThreadStackSize` 的值，JDK 8 默认值为 1024（K）。
+
+启动命令：
+
+```shell
+   java -Xms20M -Xmx20M -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=92 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -XX:+HeapDumpOnOutOfMemoryError -Xss512k -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+```
+
+使用命令 `jcmd <pid> VM.flags` 查看设置的 flags 情况：
+
+```
+55824:
+-XX:CICompilerCount=4 -XX:CMSInitiatingOccupancyFraction=92 -XX:+HeapDumpOnOutOfMemoryError -XX:InitialHeapSize=20971520 -XX:MaxHeapSize=20971520 -XX:MaxNewSize=6946816 -XX:MaxTenuringThreshold=6 -XX:MinHeapDeltaBytes=196608 -XX:NewSize=6946816 -XX:OldPLABSize=16 -XX:OldSize=14024704 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:ThreadStackSize=512 -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseFastUnorderedTimeStamps -XX:+UseParNewGC 
+```
+
+### 元空间设置
+
+- `-XX:MaxMetaspaceSize`：设置元空间最大值，默认值是 -1，即不限制，或者说只受限于本地内存大小。
+- `-XX:MetaspaceSize`：指定元空间的初始大小，以**字节**为单位，达到该值就会触发垃圾收集进行类型卸载，同时收集器会对该值进行调整：如果释放了大量的空间，就适当降低该值；如果释放了很少的空间，那么在不超过 `-XX:MaxMetaspaceSize`（如果设置了的话）的情况下，适当提高该值。
+- `-XX:MinMetaspaceFreeRatio`：作用是在垃圾收集之后控制最小的元空间剩余容量的比例，可减少因为元空间不足导致的垃圾收集频率。类似的还有 `-XX:MaxMetaspaceFreeRatio`，用于控制最大的元空间剩余容量的百分比。
+
+### 本机直接内存设置
+
+`-XX:MaxDirectMemorySize` 参数设置直接内存（Direct Memory）的容量大小，如果不去指定，则默认与 Java 堆的最大值一致。
+
 ## 垃圾收集器设置
 
 ### 常用垃圾回收器组合参数设定
@@ -174,11 +208,11 @@ PS Old Generation
 使用如下命令设置：
 
 ```
-java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=92 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=logs/heapDump-%t.hprof -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
+java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=92 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -XX:+HeapDumpOnOutOfMemoryError -jar spring-boot-demo-0.0.1-SNAPSHOT.jar
 ```
 
 - `-XX:+HeapDumpOnOutOfMemoryError`：让虚拟机在出现内存溢出异常的时候 Dump 出当前的内存堆转储快照以便进行事后分析。
-- `-XX:HeapDumpPath=logs/heapDump-%t.hprof`：指定 dump 文件的路径，目录路径必须存在。
+- `-XX:HeapDumpPath=logs/heapDump.hprof`：指定 dump 文件的路径，目录路径必须存在。默认值为 `./java_pid%p.hprof`，建议不设置，手动设置 `%p` 变量不生效。
 - `-Xloggc:logs/gc-%t.log`：指定 GC 日志的输入路径。
 - `-XX:+PrintGCDateStamps`：输出 GC 的触发时间。
 - `-XX:+PrintGC` 和 `-verbose:gc`：查看 GC 基本信息，会显示容量的变化。
@@ -486,6 +520,9 @@ G1 Old Generation:
 
 ## 参考
 
+- [Java HotSpot VM Options](https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html)
+- [Java Platform, Standard Edition Tools Reference](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html)
+- [JVM参数使用手册](https://segmentfault.com/a/1190000010603813)
 - [Java - jmx远程调优](https://www.jianshu.com/p/923580d3a5a2)
 - [JVM的server模式和client模式](https://blog.csdn.net/qq_26545305/article/details/70241939)
 - [JVM调优实战一（Parallel + ParallelOld）](https://blog.csdn.net/bch1991/article/details/109458333)
