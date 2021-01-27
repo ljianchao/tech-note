@@ -162,6 +162,8 @@ G1 收集器和 CMS 收集器比较：
 
 ## 参考
 
+- [Java HotSpot VM Options](https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html)
+- [Java Platform, Standard Edition Tools Reference](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html)
 - [JVM的server模式和client模式](https://blog.csdn.net/qq_26545305/article/details/70241939)
 - [JVM调优实战一（Parallel + ParallelOld）](https://blog.csdn.net/bch1991/article/details/109458333)
 
