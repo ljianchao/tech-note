@@ -450,6 +450,9 @@ concurrent mark-sweep generation:
 
 ### G1GC
 
+- `-XX:G1HeapRegionSize`：设置每个 Region 的大小，默认是 1MB，取值范围为 1MB~32MB，且应为 2 的 N 次幂。
+- `-XX:MaxGCPauseMillis`：设定运行的收集停顿时间，默认值为 200 毫秒。
+
 启动命令：
 
 ```shell
