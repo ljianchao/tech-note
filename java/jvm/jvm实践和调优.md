@@ -805,12 +805,484 @@ public class PutInEden2 {
         b3 = new byte[4 * _1MB];
 
         try {
-            System.out.println("PutInEden is started.");
+            System.out.println("PutInEden2 is started.");
             System.in.read();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
+```
+
+### 2. 大对象直接进入老年代
+
+大对象就是指需要**大量连续内存空间**的 Java 对象，最典型的大对象便是那种**很长的字符串**，或者**元素数量很庞大的数组**。
+
+在分配空间时，大对象容易导致内存明明还有不好空间时就提前触发垃圾收集，以便获取足够的**连续空间**才能安置它们，而当复制对象时，大对象就意味着高额的内存复制开销。
+
+`-XX:PretenureSizeThreshold` 参数用于指定大于该设置值的对象直接在老年代分配（默认值为 0），避免在 Eden 区及两个 Survior 区之间来回复制，产生大量的内存复制操作。该参数只对 `Serial` 和 `ParNew` 两款新生代收集器有效。
+
+将大对象直接分配到老年代，保持新生代对象结构的完整性，可以提高 GC 的效率。如果非常不幸的，**一个大对象同时又是短命的对象**，假设这种情况出现得比较频繁，那么对于 GC 来说将会是一场灾难。原本应该用于存放永久对象的老年代，被短命的对象塞满，这也意味着对堆空间进行了洗牌，扰乱了分代内存回收的基本思路。
+
+> 短命的大对象对垃圾回收是一场灾难。目前没有一种特别好的回收方法处理这个问题。因此，开发人员应该尽量避免使用短命的大对象。
+
+示例一：
+
+```java
+package com.example.jvm.demo.performance;
+
+import java.io.IOException;
+
+/**
+ * 大对象直接分配到老年代
+ *
+ * 示例一：
+ *
+ * 启动命令：
+ *     java -Xms60M -Xmx60M -XX:PretenureSizeThreshold=3145728 -XX:+UseSerialGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -cp jvm-demo-0.0.1-SNAPSHOT.jar com.example.jvm.demo.performance.PutBigObjectInOld
+ *
+ * GC 日志内容：
+ * Java HotSpot(TM) 64-Bit Server VM (25.131-b11) for linux-amd64 JRE (1.8.0_131-b11), built on Mar 15 2017 01:23:40 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+ * Memory: 4k page, physical 15673600k(6449836k free), swap 7929852k(1208500k free)
+ * CommandLine flags: -XX:InitialHeapSize=62914560 -XX:MaxHeapSize=62914560 -XX:PretenureSizeThreshold=3145728 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC
+ * Heap
+ *  def new generation   total 18432K, used 1639K [0x00000000fc400000, 0x00000000fd800000, 0x00000000fd800000)
+ *   eden space 16384K,  10% used [0x00000000fc400000, 0x00000000fc599d08, 0x00000000fd400000)
+ *   from space 2048K,   0% used [0x00000000fd400000, 0x00000000fd400000, 0x00000000fd600000)
+ *   to   space 2048K,   0% used [0x00000000fd600000, 0x00000000fd600000, 0x00000000fd800000)
+ *  tenured generation   total 40960K, used 16384K [0x00000000fd800000, 0x0000000100000000, 0x0000000100000000)
+ *    the space 40960K,  40% used [0x00000000fd800000, 0x00000000fe800040, 0x00000000fe800200, 0x0000000100000000)
+ *  Metaspace       used 2923K, capacity 4486K, committed 4864K, reserved 1056768K
+ *   class space    used 320K, capacity 386K, committed 512K, reserved 1048576K
+ *
+ * 堆信息：
+ * Attaching to process ID 132339, please wait...
+ * Debugger attached successfully.
+ * Server compiler detected.
+ * JVM version is 25.131-b11
+ *
+ * using thread-local object allocation.
+ * Mark Sweep Compact GC
+ *
+ * Heap Configuration:
+ *    MinHeapFreeRatio         = 40
+ *    MaxHeapFreeRatio         = 70
+ *    MaxHeapSize              = 62914560 (60.0MB)
+ *    NewSize                  = 20971520 (20.0MB)
+ *    MaxNewSize               = 20971520 (20.0MB)
+ *    OldSize                  = 41943040 (40.0MB)
+ *    NewRatio                 = 2
+ *    SurvivorRatio            = 8
+ *    MetaspaceSize            = 21807104 (20.796875MB)
+ *    CompressedClassSpaceSize = 1073741824 (1024.0MB)
+ *    MaxMetaspaceSize         = 17592186044415 MB
+ *    G1HeapRegionSize         = 0 (0.0MB)
+ *
+ * Heap Usage:
+ * New Generation (Eden + 1 Survivor Space):
+ *    capacity = 18874368 (18.0MB)
+ *    used     = 1006760 (0.9601211547851562MB)
+ *    free     = 17867608 (17.039878845214844MB)
+ *    5.33400641547309% used
+ * Eden Space:
+ *    capacity = 16777216 (16.0MB)
+ *    used     = 1006760 (0.9601211547851562MB)
+ *    free     = 15770456 (15.039878845214844MB)
+ *    6.000757217407227% used
+ * From Space:
+ *    capacity = 2097152 (2.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 2097152 (2.0MB)
+ *    0.0% used
+ * To Space:
+ *    capacity = 2097152 (2.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 2097152 (2.0MB)
+ *    0.0% used
+ * tenured generation:
+ *    capacity = 41943040 (40.0MB)
+ *    used     = 16777280 (16.00006103515625MB)
+ *    free     = 25165760 (23.99993896484375MB)
+ *    40.000152587890625% used
+ *
+ * 803 interned Strings occupying 54232 bytes.
+ *
+ * 分析：
+ * 4个 4MB 对象直接分配在老年代
+ *
+ */
+public class PutBigObjectInOld {
+
+    private static final int _1MB = 1024 * 1024;
+
+    public static void main(String[] args) {
+        byte[] b1, b2, b3, b4;  // 定义变量
+        b1 = new byte[4 * _1MB];  // 分配4MB堆空间，考察堆空间的使用情况
+        b2 = new byte[4 * _1MB];
+        b3 = new byte[4 * _1MB];
+        b4 = new byte[4 * _1MB];
+
+        try {
+            System.out.println("PutBigObjectInOld is started.");
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+```
+
+### 3. 长期存活的对象将进入老年代
+
+虚拟机给每个对象定义了一个对象年龄（Age）计数器，存储在对象头中。对象通常在 Eden 区里诞生，如果经过第一次 Minor GC 后仍然存活，并且能够被 Survior 容纳的话，该对象会被移动到 Survior 空间中，并且将其对象年龄设置为 1 岁。对象在 Survior 区中每熬过一次 Minor GC，年龄就增加 1 岁，当它的年龄增加到一定程度（默认值为15），就会被晋升到老年代中。`-XX:MaxTenuringThreshold` 参数指定对象晋升老年代的年龄阈值。
+
+示例一：
+
+```java
+package com.example.jvm.demo.performance;
+
+import java.io.IOException;
+
+/**
+ * 长期存活的对象将进入老年代
+ *
+ * 示例一：
+ *
+ * 启动命令：
+ *     java -Xms20M -Xmx20M -Xmn10M -XX:MaxTenuringThreshold=1 -XX:+UseSerialGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -cp jvm-demo-0.0.1-SNAPSHOT.jar com.example.jvm.demo.performance.TenuringThreshold
+ *
+ * GC 日志内容：
+ * Java HotSpot(TM) 64-Bit Server VM (25.131-b11) for linux-amd64 JRE (1.8.0_131-b11), built on Mar 15 2017 01:23:40 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+ * Memory: 4k page, physical 15673600k(6447404k free), swap 7929852k(1210088k free)
+ * CommandLine flags: -XX:InitialHeapSize=20971520 -XX:InitialTenuringThreshold=1 -XX:MaxHeapSize=20971520 -XX:MaxNewSize=10485760 -XX:MaxTenuringThreshold=1 -XX:NewSize=10485760 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC
+ * 2021-01-30T17:32:31.114+0800: 0.119: [GC (Allocation Failure) 2021-01-30T17:32:31.114+0800: 0.119: [DefNew: 5023K->559K(9216K), 0.0043981 secs] 5023K->4655K(19456K), 0.0045328 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+ * 2021-01-30T17:32:31.119+0800: 0.124: [GC (Allocation Failure) 2021-01-30T17:32:31.119+0800: 0.124: [DefNew: 4655K->0K(9216K), 0.0012754 secs] 8751K->4650K(19456K), 0.0013380 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+ * Heap
+ *  def new generation   total 9216K, used 4336K [0x00000000fec00000, 0x00000000ff600000, 0x00000000ff600000)
+ *   eden space 8192K,  52% used [0x00000000fec00000, 0x00000000ff03c340, 0x00000000ff400000)
+ *   from space 1024K,   0% used [0x00000000ff400000, 0x00000000ff400000, 0x00000000ff500000)
+ *   to   space 1024K,   0% used [0x00000000ff500000, 0x00000000ff500000, 0x00000000ff600000)
+ *  tenured generation   total 10240K, used 4650K [0x00000000ff600000, 0x0000000100000000, 0x0000000100000000)
+ *    the space 10240K,  45% used [0x00000000ff600000, 0x00000000ffa8a8c8, 0x00000000ffa8aa00, 0x0000000100000000)
+ *  Metaspace       used 2923K, capacity 4486K, committed 4864K, reserved 1056768K
+ *   class space    used 320K, capacity 386K, committed 512K, reserved 1048576K
+ *
+ * 堆信息：
+ * Attaching to process ID 134480, please wait...
+ * Debugger attached successfully.
+ * Server compiler detected.
+ * JVM version is 25.131-b11
+ *
+ * using thread-local object allocation.
+ * Mark Sweep Compact GC
+ *
+ * Heap Configuration:
+ *    MinHeapFreeRatio         = 40
+ *    MaxHeapFreeRatio         = 70
+ *    MaxHeapSize              = 20971520 (20.0MB)
+ *    NewSize                  = 10485760 (10.0MB)
+ *    MaxNewSize               = 10485760 (10.0MB)
+ *    OldSize                  = 10485760 (10.0MB)
+ *    NewRatio                 = 2
+ *    SurvivorRatio            = 8
+ *    MetaspaceSize            = 21807104 (20.796875MB)
+ *    CompressedClassSpaceSize = 1073741824 (1024.0MB)
+ *    MaxMetaspaceSize         = 17592186044415 MB
+ *    G1HeapRegionSize         = 0 (0.0MB)
+ *
+ * Heap Usage:
+ * New Generation (Eden + 1 Survivor Space):
+ *    capacity = 9437184 (9.0MB)
+ *    used     = 4356640 (4.154815673828125MB)
+ *    free     = 5080544 (4.845184326171875MB)
+ *    46.16461859809028% used
+ * Eden Space:
+ *    capacity = 8388608 (8.0MB)
+ *    used     = 4356640 (4.154815673828125MB)
+ *    free     = 4031968 (3.845184326171875MB)
+ *    51.93519592285156% used
+ * From Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * To Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * tenured generation:
+ *    capacity = 10485760 (10.0MB)
+ *    used     = 4761800 (4.541206359863281MB)
+ *    free     = 5723960 (5.458793640136719MB)
+ *    45.41206359863281% used
+ *
+ * 803 interned Strings occupying 54232 bytes.
+ *
+ * 分析：
+ * `-XX:MaxTenuringThreshold=1` 设置为1 ，b1 对象在第 2 次
+ * GC 时晋升到老年代，survior 空间使用为 0。
+ *
+ */
+public class TenuringThreshold {
+
+    private static final int _1MB = 1024 * 1024;
+
+    public static void main(String[] args) {
+        byte[] b1, b2, b3;  // 定义变量
+        b1 = new byte[_1MB / 4];  // 什么时候进入老年代决定于 -XX:MaxTenuringThreshold 的设置
+        b2 = new byte[4 * _1MB];    // 分配 4MB 堆空间
+        b3 = new byte[4 * _1MB];
+
+        b3 = null;  // 使 b3 可以回收
+
+        b3 = new byte[4 * _1MB];
+
+        try {
+            System.out.println("TenuringThreshold is started.");
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+```
+
+### 4. 动态对象年龄判定
+
+HotSpot 虚拟机并不是永远要求对象的年龄必须达到 `-XX:MaxTenuringThreshold` 才能晋升老年代，如果在 Survior 空间中**相同年龄**所有对象大小的总和大于 Survior 空间的一半，年龄**大于或等于**该年龄的对象就可以直接进入老年代。
+
+示例一：
+
+```java
+package com.example.jvm.demo.performance;
+
+import java.io.IOException;
+
+/**
+ * 动态对象年龄判定
+ *
+ * 示例一：
+ *
+ * 启动命令：
+ *     java -Xms20M -Xmx20M -Xmn10M -XX:MaxTenuringThreshold=15 -XX:+UseSerialGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -cp jvm-demo-0.0.1-SNAPSHOT.jar com.example.jvm.demo.performance.TenuringThresholdDynamic
+ *
+ * GC 日志内容：
+ * Java HotSpot(TM) 64-Bit Server VM (25.131-b11) for linux-amd64 JRE (1.8.0_131-b11), built on Mar 15 2017 01:23:40 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+ * Memory: 4k page, physical 15673600k(6445968k free), swap 7929852k(1210592k free)
+ * CommandLine flags: -XX:InitialHeapSize=20971520 -XX:MaxHeapSize=20971520 -XX:MaxNewSize=10485760 -XX:MaxTenuringThreshold=15 -XX:NewSize=10485760 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC
+ * 2021-01-30T17:45:01.896+0800: 0.117: [GC (Allocation Failure) 2021-01-30T17:45:01.896+0800: 0.117: [DefNew: 5279K->815K(9216K), 0.0038975 secs] 5279K->4911K(19456K), 0.0040133 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+ * 2021-01-30T17:45:01.901+0800: 0.121: [GC (Allocation Failure) 2021-01-30T17:45:01.901+0800: 0.121: [DefNew: 4911K->0K(9216K), 0.0011728 secs] 9007K->4906K(19456K), 0.0012285 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+ * Heap
+ *  def new generation   total 9216K, used 4337K [0x00000000fec00000, 0x00000000ff600000, 0x00000000ff600000)
+ *   eden space 8192K,  52% used [0x00000000fec00000, 0x00000000ff03c448, 0x00000000ff400000)
+ *   from space 1024K,   0% used [0x00000000ff400000, 0x00000000ff400000, 0x00000000ff500000)
+ *   to   space 1024K,   0% used [0x00000000ff500000, 0x00000000ff500000, 0x00000000ff600000)
+ *  tenured generation   total 10240K, used 4906K [0x00000000ff600000, 0x0000000100000000, 0x0000000100000000)
+ *    the space 10240K,  47% used [0x00000000ff600000, 0x00000000ffaca8f8, 0x00000000ffacaa00, 0x0000000100000000)
+ *  Metaspace       used 2923K, capacity 4486K, committed 4864K, reserved 1056768K
+ *   class space    used 320K, capacity 386K, committed 512K, reserved 1048576K
+ *
+ * 堆信息：
+ * Attaching to process ID 135189, please wait...
+ * Debugger attached successfully.
+ * Server compiler detected.
+ * JVM version is 25.131-b11
+ *
+ * using thread-local object allocation.
+ * Mark Sweep Compact GC
+ *
+ * Heap Configuration:
+ *    MinHeapFreeRatio         = 40
+ *    MaxHeapFreeRatio         = 70
+ *    MaxHeapSize              = 20971520 (20.0MB)
+ *    NewSize                  = 10485760 (10.0MB)
+ *    MaxNewSize               = 10485760 (10.0MB)
+ *    OldSize                  = 10485760 (10.0MB)
+ *    NewRatio                 = 2
+ *    SurvivorRatio            = 8
+ *    MetaspaceSize            = 21807104 (20.796875MB)
+ *    CompressedClassSpaceSize = 1073741824 (1024.0MB)
+ *    MaxMetaspaceSize         = 17592186044415 MB
+ *    G1HeapRegionSize         = 0 (0.0MB)
+ *
+ * Heap Usage:
+ * New Generation (Eden + 1 Survivor Space):
+ *    capacity = 9437184 (9.0MB)
+ *    used     = 4356904 (4.155067443847656MB)
+ *    free     = 5080280 (4.844932556152344MB)
+ *    46.16741604275174% used
+ * Eden Space:
+ *    capacity = 8388608 (8.0MB)
+ *    used     = 4356904 (4.155067443847656MB)
+ *    free     = 4031704 (3.8449325561523438MB)
+ *    51.9383430480957% used
+ * From Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * To Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * tenured generation:
+ *    capacity = 10485760 (10.0MB)
+ *    used     = 5023992 (4.791252136230469MB)
+ *    free     = 5461768 (5.208747863769531MB)
+ *    47.91252136230469% used
+ *
+ * 803 interned Strings occupying 54256 bytes.
+ *
+ * 分析：
+ * `-XX:MaxTenuringThreshold=1` 设置为15 ，b1 和 b2 对象在第 2 次
+ * GC 时晋升到老年代，因为 b1 和 b2 对象所占空间已达 Survior 空间的一半，
+ * 且它们同龄，survior 空间使用为 0。
+ *
+ */
+public class TenuringThresholdDynamic {
+
+    private static final int _1MB = 1024 * 1024;
+
+    public static void main(String[] args) {
+        byte[] b1, b2, b3, b4;  // 定义变量
+        b1 = new byte[_1MB / 4];
+        b2 = new byte[_1MB / 4];  // b1 + b2 大于 survior 空间的一半
+        b3 = new byte[4 * _1MB];
+        b4 = new byte[4 * _1MB];
+        b4 = null;  // 使 b3 可以回收
+
+        b4 = new byte[4 * _1MB];
+
+        try {
+            System.out.println("TenuringThresholdDynamic is started.");
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 5. 空间分配担保
+
+在发生 Minor GC 之前，虚拟机必须检查老年代**最大可用的连续空间是否大于新生代所有对象总空间**，如果这个条件成立，那这一次 Minor GC 可用确保是安全的。如果不成立，则虚拟机（JDK 6 Update 24之前）会先查看 `-XX:HandlePromotionFailure` 参数的设置值是否允许担保失败（Handle Promotion Failure）：如果允许，那么继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试进行一次 Minor GC，尽管这次 Minor GC 是有风险的；如果小于，或者 `-XX:HandlePromotionFailure` 设置不允许冒险，那这时就要改为进行一次 Full GC。
+
+在 JDK 6 Update 24 之后，`-XX:HandlePromotionFailure` 参数不会再影响到虚拟机的空间分配担保策略，只要老年代的连续空间大于新生代对象总大小或历次晋升的平均大小，就会进行 Minor GC，否则将进行 Full GC。
+
+
+示例一：
+
+```java
+package com.example.jvm.demo.performance;
+
+import java.io.IOException;
+
+/**
+ * 空间分配担保
+ *
+ * 示例一：
+ *
+ * 启动命令：
+ *     java -Xms20M -Xmx20M -Xmn10M -XX:+UseSerialGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:logs/gc-%t.log -cp jvm-demo-0.0.1-SNAPSHOT.jar com.example.jvm.demo.performance.HandlePromotion
+ *
+ * GC 日志内容：
+ * Java HotSpot(TM) 64-Bit Server VM (25.131-b11) for linux-amd64 JRE (1.8.0_131-b11), built on Mar 15 2017 01:23:40 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+ * Memory: 4k page, physical 15673600k(6445356k free), swap 7929852k(1212040k free)
+ * CommandLine flags: -XX:InitialHeapSize=20971520 -XX:MaxHeapSize=20971520 -XX:MaxNewSize=10485760 -XX:NewSize=10485760 -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC
+ * 2021-01-30T18:18:16.976+0800: 0.116: [GC (Allocation Failure) 2021-01-30T18:18:16.976+0800: 0.116: [DefNew: 6815K->303K(9216K), 0.0034558 secs] 6815K->6447K(19456K), 0.0035487 secs] [Times: user=0.01 sys=0.00, real=0.00 secs]
+ * 2021-01-30T18:18:16.980+0800: 0.120: [GC (Allocation Failure) 2021-01-30T18:18:16.980+0800: 0.120: [DefNew: 6607K->6607K(9216K), 0.0000132 secs]2021-01-30T18:18:16.980+0800: 0.120: [Tenured: 6144K->8192K(10240K), 0.0046075 secs] 12751K->10537K(19456K), [Metaspace: 2916K->2916K(1056768K)], 0.0046766 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]
+ *
+ * 堆信息：
+ * Attaching to process ID 137153, please wait...
+ * Debugger attached successfully.
+ * Server compiler detected.
+ * JVM version is 25.131-b11
+ *
+ * using thread-local object allocation.
+ * Mark Sweep Compact GC
+ *
+ * Heap Configuration:
+ *    MinHeapFreeRatio         = 40
+ *    MaxHeapFreeRatio         = 70
+ *    MaxHeapSize              = 20971520 (20.0MB)
+ *    NewSize                  = 10485760 (10.0MB)
+ *    MaxNewSize               = 10485760 (10.0MB)
+ *    OldSize                  = 10485760 (10.0MB)
+ *    NewRatio                 = 2
+ *    SurvivorRatio            = 8
+ *    MetaspaceSize            = 21807104 (20.796875MB)
+ *    CompressedClassSpaceSize = 1073741824 (1024.0MB)
+ *    MaxMetaspaceSize         = 17592186044415 MB
+ *    G1HeapRegionSize         = 0 (0.0MB)
+ *
+ * Heap Usage:
+ * New Generation (Eden + 1 Survivor Space):
+ *    capacity = 9437184 (9.0MB)
+ *    used     = 4644456 (4.429298400878906MB)
+ *    free     = 4792728 (4.570701599121094MB)
+ *    49.21442667643229% used
+ * Eden Space:
+ *    capacity = 8388608 (8.0MB)
+ *    used     = 4644456 (4.429298400878906MB)
+ *    free     = 3744152 (3.5707015991210938MB)
+ *    55.36623001098633% used
+ * From Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * To Space:
+ *    capacity = 1048576 (1.0MB)
+ *    used     = 0 (0.0MB)
+ *    free     = 1048576 (1.0MB)
+ *    0.0% used
+ * tenured generation:
+ *    capacity = 10485760 (10.0MB)
+ *    used     = 8388672 (8.00006103515625MB)
+ *    free     = 2097088 (1.99993896484375MB)
+ *    80.0006103515625% used
+ *
+ * 788 interned Strings occupying 53192 bytes.
+ *
+ * 分析：
+ *
+ *
+ */
+public class HandlePromotion {
+
+    private static final int _1MB = 1024 * 1024;
+
+    public static void main(String[] args) {
+        byte[] b1, b2, b3, b4, b5, b6, b7;  // 定义变量
+        b1 = new byte[2 * _1MB];
+        b2 = new byte[2 * _1MB];
+        b3 = new byte[2 * _1MB];
+//        b1 = null;
+
+        b4 = new byte[2 * _1MB];  // 分配b4之前，第 1 次 Minor GC
+        b5 = new byte[2 * _1MB];
+        b6 = new byte[2 * _1MB];
+
+        b1 = null;
+//        b4 = null;
+//        b5 = null;
+//        b6 = null;
+
+        b7 = new byte[2 * _1MB];  // 分配b7之前，进行 Full GC
+
+        try {
+            System.out.println("HandlePromotion is started.");
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
 ```
 
