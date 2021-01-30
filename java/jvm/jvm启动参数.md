@@ -77,6 +77,8 @@ jdk1.7之后的命令：
 - `-XX:NewRatio`：设置老年代与新生代的比例，它等于老年代大小除以新生代大小。
 - `-XX:SurvivorRatio`：新生代中 eden 区与 survior 区的比例。
 - `-XX:TargetSurvivorRatio`：设置 survior 区的可使用率。当 survior 区的空间使用率达到这个数值时，会将对象送入老年代。
+- `-XX:PretenureSizeThreshold`：指定大于该设置值的对象直接在老年代分配（默认值为 0），避免在 Eden 区及两个 Survior 区之间来回复制，产生大量的内存复制操作。该参数只对 `Serial` 和 `ParNew` 两款新生代收集器有效。
+- `-XX:MaxTenuringThreshold`：指定对象晋升老年代的年龄阈值（默认值为 15）。
 
 启动命令：
 
