@@ -75,8 +75,8 @@ jdk1.7之后的命令：
 - `-XX:MaxHeapFreeRatio`：设置堆空间的最大空闲比例。当堆空间的空闲内存大于这个数值时，便会压缩堆空间，得到一个较小的堆。
 - `-XX:NewSize`：设置新生代的大小。
 - `-XX:NewRatio`：设置老年代与新生代的比例，它等于老年代大小除以新生代大小。
-- `-XX:SurviorRatio`：新生代中 eden 区与 survior 区的比例。
-- `-XX:TargetSurviorRatio`：设置 survior 区的可使用率。当 survior 区的空间使用率达到这个数值时，会将对象送入老年代。
+- `-XX:SurvivorRatio`：新生代中 eden 区与 survior 区的比例。
+- `-XX:TargetSurvivorRatio`：设置 survior 区的可使用率。当 survior 区的空间使用率达到这个数值时，会将对象送入老年代。
 
 启动命令：
 
@@ -215,9 +215,9 @@ java -Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFract
 - `-XX:HeapDumpPath=logs/heapDump.hprof`：指定 dump 文件的路径，目录路径必须存在。默认值为 `./java_pid%p.hprof`，建议不设置，手动设置 `%p` 变量不生效。
 - `-Xloggc:logs/gc-%t.log`：指定 GC 日志的输入路径。
 - `-XX:+PrintGCDateStamps`：输出 GC 的触发时间。
-- `-XX:+PrintGC` 和 `-verbose:gc`：查看 GC 基本信息，会显示容量的变化。
-- `-XX:+PrintGCDetails`：查看 GC 详细信息。
-- `-XX:+PrintHeapAtGC`：查看 GC 前后的堆、方法区可用容量的变化。
+- `-XX:+PrintGC` 和 `-verbose:gc`：打印 GC 基本信息，会显示容量的变化。
+- `-XX:+PrintGCDetails`：打印 GC 详细信息。虚拟机在发生垃圾收集行为时打印内存回收日志，并且在进程退出的时候输出当前的内存各区域分配情况。GC 日志格式：`[GC 名称][GC前内存占用] -> [GC后内存占用](该区内存总大小)`。
+- `-XX:+PrintHeapAtGC`：打印 GC 前后的堆、方法区可用容量的变化。
 - `-XX:+PrintGCApplicationStoppedTime`：查看 GC 过程中用户线程并发时间以及停顿时间。
 
 ### SericalGC
@@ -532,3 +532,4 @@ G1 Old Generation:
 - [为什么不推荐启用UseGCLogFileRotation来记录GC日志？](https://blog.csdn.net/goldenfish1919/article/details/93997132)
 - [Java如何生成Heap Dump及OOM问题排查](https://www.jianshu.com/p/91ee6476848c)
 - [Heap堆分析（堆转储、堆分析）](https://www.cnblogs.com/duanxz/p/8510623.html)
+- [GC调优-XX:PrintGCDetails深度解析](https://www.cnblogs.com/A-Dun/p/13790719.html)
